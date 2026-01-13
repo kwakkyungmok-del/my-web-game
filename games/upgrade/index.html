@@ -217,12 +217,14 @@ function checkEmergencyButton(){
     document.getElementById("rescueBtn").style.display = (used==="true")?"none":"block";
 }
 
-
+// 🔹 뒤로가기: 특정 사이트로 이동
 function goBack(){
-    // 이전 히스토리가 아닌, 항상 메인 페이지로 이동
-    window.location.href="https://kwakkyungmok-del.github.io/my-web-game/"; // 여기에 메인 사이트 주소 넣기
+    window.location.href = "https://your-main-site.com"; // ← 여기 메인 사이트 URL로 바꾸기
 }
 
+function log(msg){
+    document.getElementById("log").innerText = msg;
+}
 
 // === 최초 실행 ===
 showRandomGreeting();

@@ -17,11 +17,6 @@
             text-align: center;
             padding: 30px 0;
         }
-        <!-- 무기 강화 순위 버튼 -->
-<div style="text-align:center; margin-top:20px;">
-    <button id="swordRankingBtn" style="padding:10px 15px; background:#f59e0b; color:black; border:none; border-radius:6px; cursor:pointer;">⚔️ 강화 순위 보기</button>
-</div>
-
         .container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -58,6 +53,38 @@
         #boardBtn:hover {
             background: #006be6;
         }
+
+        /* ===== 추가: 순위 모달 UI ===== */
+        #rankingModal {
+            position: fixed;
+            top:0; left:0;
+            width:100%; height:100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        #rankingModal .modalBox {
+            background:#1a1a1a;
+            padding:20px;
+            border-radius:12px;
+            width:300px;
+            text-align:center;
+        }
+        #rankingModal .closeBtn {
+            background:#333;
+            color:white;
+            padding:6px 12px;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+            margin-top:10px;
+        }
+        #rankingList {
+            text-align:left;
+            margin-top:10px;
+        }
     </style>
 </head>
 <body>
@@ -71,42 +98,63 @@
         <p>무기를 강화하고 수식어를 모아보자</p>
     </div>
 
-    <!-- 클릭형 게임 카드 (강화 게임 카드 바로 아래 중앙 배치) -->
+    <!-- 클릭형 게임 카드 -->
     <div class="card" onclick="location.href='cardgame/'">
         <h2>🃏 카드 게임</h2>
         <p>판타지 세상의 카드 전투</p>
     </div>
 </div>
 
-<!-- 자유 게시판 버튼 (우상단 고정) -->
+<!-- 자유 게시판 버튼 -->
 <button id="boardBtn">📜 자유 게시판</button>
+
+<!-- ===== 순위 모달 ===== -->
+<div id="rankingModal">
+    <div class="modalBox">
+        <h3>🔱 강화 순위 (Top 3)</h3>
+        <div id="rankingList"></div>
+        <button class="closeBtn" id="closeRankingBtn">닫기</button>
+    </div>
+</div>
+
+<!-- ===== 순위 버튼 추가 ===== -->
+<div style="text-align:center; margin-top:20px;">
+    <button id="showRankingBtn" style="padding:10px 15px; background:#f59e0b; color:black; border:none; border-radius:6px; cursor:pointer;">⚔️ 강화 순위 보기</button>
+</div>
 
 <script>
     // 자유 게시판 이동
     document.getElementById('boardBtn').onclick = function() {
         location.href = 'board/';
     };
-    document.getElementById("swordRankingBtn").addEventListener("click", () => {
-    let rankings = JSON.parse(localStorage.getItem("swordRankings") || "[]");
-    if(rankings.length === 0){
-        alert("등록된 검이 없습니다.");
-        return;
-    }
 
-    // 레벨 기준 내림차순, 상위 3개
-    rankings.sort((a,b)=>b.level - a.level);
-    const top3 = rankings.slice(0,3);
+    // 순위 UI 기능
+    const rankingModal = document.getElementById("rankingModal");
+    const rankingList = document.getElementById("rankingList");
 
-    let msg = "🔱 강화 순위 (Top 3)\n";
-    top3.forEach((rec, idx)=>{
-        msg += `${idx+1}. ${rec.owner} - ${rec.name} Lv.${rec.level} 공격력:${rec.attack}\n`;
-    });
+    document.getElementById("showRankingBtn").onclick = () => {
+        let records = JSON.parse(localStorage.getItem("swordRankings") || "[]");
+        if(records.length === 0){
+            alert("등록된 검이 없습니다.");
+            return;
+        }
+        // 레벨 기준 내림차순, 상위 3개
+        records.sort((a,b)=>b.level - a.level);
+        const top3 = records.slice(0,3);
 
-    alert(msg);
-});
+        let html = "";
+        top3.forEach((rec, idx)=>{
+            html += `<p>${idx+1}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}</p>`;
+        });
+        rankingList.innerHTML = html;
 
+        rankingModal.style.display = "flex";
+    };
+
+    document.getElementById("closeRankingBtn").onclick = () => {
+        rankingModal.style.display = "none";
+    };
 </script>
 
 </body>
 </html>
-

@@ -42,9 +42,9 @@ button { padding:8px 15px; margin:10px; cursor:pointer; border:none; border-radi
 <div id="battlePhase" style="display:none;">
 <h2>전투 시작!</h2>
 <div>내 카드</div>
-<div id="playerDeckDiv"></div>
+<div id="playerDeckDiv" style="display:flex; justify-content:center; gap:10px;"></div>
 <div>상대 카드</div>
-<div id="compDeckDiv"></div>
+<div id="compDeckDiv" style="display:flex; justify-content:center; gap:10px;"></div>
 </div>
 
 <div id="log"></div>
@@ -70,7 +70,7 @@ const allCards = [
  {name:"사자",emoji:"🦁",atk:4,def:3,hp:6,attr:"불"},
  {name:"호랑이",emoji:"🐯",atk:5,def:3,hp:7,attr:"노말"},
  {name:"천둥신",emoji:"⚡",atk:5,def:4,hp:7,attr:"철"},
- {name:"닌자",emoji:"🗡",atk:4,def:2,hp:5,attr:"풀"},
+ {name:"닌자",emoji:"🥷",atk:4,def:2,hp:5,attr:"풀"},
  {name:"마녀",emoji:"🧙‍♀️",atk:3,def:3,hp:6,attr:"불"},
  {name:"사신",emoji:"☠️",atk:5,def:5,hp:8,attr:"노말"}
 ];
@@ -84,6 +84,7 @@ let cardPool=[],playerDeck=[],compDeck=[];
 let selectingCount=0;
 let playerSelect=null;
 let targetSelect=null;
+let playerTurn=true;
 
 function log(msg){ logDiv.textContent=msg; }
 
@@ -135,14 +136,15 @@ function renderBattleDecks(){
         let cardEl=document.createElement('div');
         cardEl.className='card';
         cardEl.innerHTML=`${c.emoji}<br>${c.name}<br>HP:${c.hp}`;
-        cardEl.onclick=()=>selectAttackCard(i);
+        cardEl.onclick=()=>{ if(playerTurn) selectAttackCard(i); };
+        if(playerSelect===i) cardEl.classList.add('attack');
         playerDeckDiv.appendChild(cardEl);
     });
     compDeck.forEach((c,i)=>{
         let cardEl=document.createElement('div');
         cardEl.className='card';
         cardEl.innerHTML=`${c.emoji}<br>HP:${c.hp}`;
-        cardEl.onclick=()=>attackComputer(i);
+        cardEl.onclick=()=>{ if(playerTurn && playerSelect!=null) attackComputer(i); };
         compDeckDiv.appendChild(cardEl);
     });
 }
@@ -151,7 +153,6 @@ function selectAttackCard(i){
     if(playerSelect!=null) return;
     playerSelect=i;
     renderBattleDecks();
-    playerDeckDiv.children[i].classList.add('attack');
     log('상대 카드 선택 후 공격하세요.');
 }
 
@@ -160,7 +161,6 @@ function attackComputer(i){
     targetSelect=i;
     let attacker=playerDeck[playerSelect];
     let target=compDeck[targetSelect];
-    // 데미지 계산 (속성 고려 가능)
     let dmg=attacker.atk;
     target.hp-=dmg;
     log(`${attacker.name}가 ${target.name}에게 ${dmg} 데미지!`);
@@ -172,6 +172,26 @@ function attackComputer(i){
     targetSelect=null;
     renderBattleDecks();
     checkVictory();
+    if(compDeck.length>0){
+        playerTurn=false;
+        setTimeout(compAttack,500);
+    }
+}
+
+function compAttack(){
+    let attackerIdx=Math.floor(Math.random()*compDeck.length);
+    let targetIdx=Math.floor(Math.random()*playerDeck.length);
+    let attacker=compDeck[attackerIdx];
+    let target=playerDeck[targetIdx];
+    target.hp-=attacker.atk;
+    log(`상대 공격중! ${attacker.name}가 ${target.name}에게 ${attacker.atk} 데미지!`);
+    if(target.hp<=0){
+        playerDeck.splice(targetIdx,1);
+        log(`${target.name} 패배!`);
+    }
+    renderBattleDecks();
+    checkVictory();
+    playerTurn=true;
 }
 
 function checkVictory(){
@@ -187,18 +207,17 @@ function checkVictory(){
 function restartGame(){
     cardPoolDiv.style.display='flex';
     cardPoolDiv.innerHTML='';
-    battlePhase.style.display='none';
+    document.getElementById('battlePhase').style.display='none';
     playerDeck=[];
     compDeck=[];
     selectingCount=0;
     playerSelect=null;
     targetSelect=null;
+    playerTurn=true;
     initPool();
 }
 
-// 초기화
 initPool();
 </script>
-
 </body>
 </html>

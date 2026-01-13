@@ -51,7 +51,7 @@
 
 <div class="panel">
     <h2>⚔️ 현재 무기</h2>
-    <div id="weaponName">낡은 검</div>
+    <div id="weaponName">-</div>
     <div id="weaponLevel">+0</div>
 
     <button onclick="upgrade()">강화하기</button>
@@ -59,11 +59,10 @@
 </div>
 
 <div class="panel">
-    <h2>📜 도감 (진화 기록)</h2>
+    <h2>📜 도감</h2>
     <div id="collection"></div>
 </div>
 
-<script>
 <script>
     let level = 0;
     let destroyed = false;
@@ -85,8 +84,8 @@
         "저주받은",
         "신성한",
         "광폭한",
-        "균열의",
-        "심연의"
+        "심연의",
+        "균열의"
     ];
 
     let discovered = new Set();
@@ -94,9 +93,7 @@
     function getStageName() {
         let current = stageNames[0].name;
         for (let stage of stageNames) {
-            if (level >= stage.min) {
-                current = stage.name;
-            }
+            if (level >= stage.min) current = stage.name;
         }
         return current;
     }
@@ -109,9 +106,7 @@
     function getWeaponName() {
         const stage = getStageName();
         const extra = getExtraAdjective();
-        return extra
-            ? `${stage} ${extra} ${baseName}`
-            : `${stage} ${baseName}`;
+        return extra ? `${stage} ${extra} ${baseName}` : `${stage} ${baseName}`;
     }
 
     function upgrade() {
@@ -146,6 +141,29 @@
     function updateUI(message) {
         const name = getWeaponName();
 
+        document.getElementById("weaponName").innerText = name;
+        document.getElementById("weaponLevel").innerText = "+" + level;
+
+        if (!discovered.has(name)) {
+            discovered.add(name);
+            addToCollection(name);
+        }
+
+        log(message);
+    }
+
+    function log(text) {
+        document.getElementById("log").innerText = text;
+    }
+
+    function addToCollection(name) {
+        const div = document.createElement("div");
+        div.className = "collection-item";
+        div.innerText = name;
+        document.getElementById("collection").appendChild(div);
+    }
+
+    updateUI("강화를 시작하세요.");
 </script>
 
 </body>

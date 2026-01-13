@@ -163,7 +163,7 @@ function attackComputer(i){
     let target=compDeck[targetSelect];
     let dmg=attacker.atk;
     target.hp-=dmg;
-    log(`${attacker.name}가 ${target.name}에게 ${dmg} 데미지!`);
+    log(`${attacker.name}(이)가 ${target.name}에게 ${dmg} 데미지!`);
     if(target.hp<=0){
         compDeck.splice(targetSelect,1);
         log(`${target.name} 패배!`);
@@ -184,7 +184,7 @@ function compAttack(){
     let attacker=compDeck[attackerIdx];
     let target=playerDeck[targetIdx];
     target.hp-=attacker.atk;
-    log(`상대 공격중! ${attacker.name}가 ${target.name}에게 ${attacker.atk} 데미지!`);
+    log(`상대 공격중! ${attacker.name}(이)가 ${target.name}에게 ${attacker.atk} 데미지!`);
     if(target.hp<=0){
         playerDeck.splice(targetIdx,1);
         log(`${target.name} 패배!`);

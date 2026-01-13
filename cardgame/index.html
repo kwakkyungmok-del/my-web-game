@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>턴제 전략 카드 게임</title>
+<title>전략 카드 게임</title>
 <style>
 body {
     background: #0f0f0f;
@@ -13,31 +13,32 @@ body {
 }
 h1 { margin-bottom: 20px; }
 
-.cards {
+#cardPool, #playerDeckDiv {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 5px;
     flex-wrap: wrap;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
+
 .card {
     background: #1c1c1c;
-    padding: 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
     width: 50px;
     height: 70px;
     display: flex;
     justify-content: center;
     align-items: center;
+    border-radius: 8px;
+    cursor: pointer;
     font-size: 18px;
     user-select: none;
+    transition: 0.2s;
 }
 .card:hover { transform: scale(1.1); background: #2a2a2a; }
 
-#log { margin-top: 20px; min-height: 60px; }
-button { padding: 8px 12px; margin: 5px; cursor: pointer; }
+#log { min-height: 60px; margin-top: 20px; }
+button { padding: 6px 12px; margin: 3px; cursor: pointer; }
+
 #rulesModal {
     display: none;
     position: fixed;
@@ -47,16 +48,14 @@ button { padding: 8px 12px; margin: 5px; cursor: pointer; }
     padding: 20px;
     border-radius: 10px;
     width: 300px;
-    box-shadow: 0 0 10px #000;
 }
-#rulesModal button { margin-top: 10px; }
 #backBtn, #rulesBtn {
     position: fixed;
-    z-index: 9999;
     padding: 8px 12px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    z-index: 9999;
 }
 #backBtn { top: 20px; left: 20px; background: #0a84ff; color:white; }
 #rulesBtn { top: 20px; right: 20px; background: #ff9500; color:white; }
@@ -64,80 +63,111 @@ button { padding: 8px 12px; margin: 5px; cursor: pointer; }
 </head>
 <body>
 
-<h1>턴제 전략 카드 게임</h1>
+<h1>전략 카드 게임</h1>
 
-<!-- 버튼 -->
 <button id="backBtn">&lt; 돌아가기</button>
 <button id="rulesBtn">규칙</button>
 
-<!-- 규칙 모달 -->
 <div id="rulesModal">
     <h3>게임 규칙</h3>
-    <p>1~20 숫자 카드 10장씩 소지<br>
-    카드 뒤집힌 상태로 시작<br>
-    한 턴마다 플레이어/컴퓨터 카드 1장씩 내기<br>
-    큰 숫자가 작은 숫자 이기지만 1은 20에게 승리<br>
-    10턴 후 이긴 횟수 많은 사람이 최종 승리</p>
+    <p>
+        1~20 숫자 카드 20장 뒤집힘<br>
+        플레이어와 컴퓨터가 한 장씩 번갈아 뽑아 10장 덱 구성<br>
+        플레이어 덱 숫자 확인 후 전략 구성<br>
+        한 턴마다 카드 1장 선택 → 컴퓨터 카드 랜덤 선택<br>
+        큰 숫자가 작은 숫자를 이기지만 1은 20에게 승리<br>
+        10턴 후 이긴 횟수 많은 사람 승리
+    </p>
     <button onclick="closeRules()">닫기</button>
 </div>
 
-<!-- 카드 영역 -->
-<div class="cards" id="playerCards"></div>
+<h3>카드 풀</h3>
+<div id="cardPool"></div>
+
+<h3>내 덱</h3>
+<div id="playerDeckDiv"></div>
+
 <div id="log">카드를 섞는 중...</div>
 
 <script>
-const totalCards = 10;
+const totalCards = 20;
+let cardPool = [];
 let playerDeck = [];
 let compDeck = [];
+let turn = 1;
 let playerWins = 0;
 let compWins = 0;
-let turn = 1;
 
 // DOM
-const playerDiv = document.getElementById('playerCards');
+const poolDiv = document.getElementById('cardPool');
+const playerDiv = document.getElementById('playerDeckDiv');
 const logDiv = document.getElementById('log');
 
-// 버튼 기능
 document.getElementById('backBtn').onclick = ()=>{ location.href='../'; };
 document.getElementById('rulesBtn').onclick = ()=>{ document.getElementById('rulesModal').style.display='block'; };
 function closeRules(){ document.getElementById('rulesModal').style.display='none'; }
 
-// 카드 뽑기 및 뒤집기
-function shuffleDecks(){
-    const numbers = Array.from({length:20},(_,i)=>i+1);
-    playerDeck = [];
-    compDeck = [];
-    for(let i=0;i<totalCards;i++){
-        let idx = Math.floor(Math.random()*numbers.length);
-        playerDeck.push(numbers.splice(idx,1)[0]);
-        idx = Math.floor(Math.random()*numbers.length);
-        compDeck.push(numbers.splice(idx,1)[0]);
+// 카드 풀 생성
+function createPool(){
+    cardPool = Array.from({length:totalCards},(_,i)=>i+1);
+    renderPool();
+}
+
+// 카드 풀 렌더
+function renderPool(){
+    poolDiv.innerHTML='';
+    cardPool.forEach((c,i)=>{
+        const div = document.createElement('div');
+        div.className='card';
+        div.textContent='?';
+        div.onclick=()=>drawCard(i);
+        poolDiv.appendChild(div);
+    });
+}
+
+// 카드 뽑기
+function drawCard(index){
+    if(playerDeck.length>=10) return; // 덱 구성 완료
+
+    // 플레이어 카드 뽑기
+    const playerCard = cardPool.splice(index,1)[0];
+    playerDeck.push(playerCard);
+
+    // 컴퓨터 랜덤 카드 뽑기
+    const compIndex = Math.floor(Math.random()*cardPool.length);
+    const compCard = cardPool.splice(compIndex,1)[0];
+    compDeck.push(compCard);
+
+    renderPool();
+    renderPlayerDeck();
+
+    if(playerDeck.length===10){
+        logDiv.textContent='덱 구성 완료! 카드 클릭해서 턴 진행.';
+    } else {
+        logDiv.textContent=`덱 구성 중... 남은 카드: ${cardPool.length}`;
     }
 }
 
-// 카드 표시 (처음에는 뒤집힘)
-function renderCards(){
+// 내 덱 렌더
+function renderPlayerDeck(){
     playerDiv.innerHTML='';
     playerDeck.forEach((c,i)=>{
         const div = document.createElement('div');
         div.className='card';
-        div.textContent = '?';
-        div.onclick = ()=>playTurn(i);
+        div.textContent=c;
+        div.onclick=()=>playTurn(i);
         playerDiv.appendChild(div);
     });
 }
 
 // 턴 진행
 function playTurn(cardIndex){
-    if(turn > totalCards) return;
+    if(cardIndex>=playerDeck.length || playerDeck.length===0) return;
 
-    const playerCard = playerDeck[cardIndex];
-    playerDeck.splice(cardIndex,1);
-
-    // 컴퓨터 랜덤 카드 선택
+    const playerCard = playerDeck.splice(cardIndex,1)[0];
     const compCard = compDeck.splice(Math.floor(Math.random()*compDeck.length),1)[0];
 
-    // 승리 계산
+    // 승리 판단
     let result='';
     if(playerCard===1 && compCard===20){ result='승리!'; playerWins++; }
     else if(playerCard===20 && compCard===1){ result='패배'; compWins++; }
@@ -149,7 +179,7 @@ function playTurn(cardIndex){
     남은 카드: ${playerDeck.length}`;
 
     turn++;
-    renderCards();
+    renderPlayerDeck();
 
     if(playerDeck.length===0){
         let final = playerWins>compWins ? '최종 승리!' : (playerWins<compWins ? '최종 패배' : '무승부');
@@ -157,15 +187,14 @@ function playTurn(cardIndex){
     }
 }
 
-// 시작
+// 초기화
 function startGame(){
-    playerWins=0; compWins=0; turn=1;
+    cardPool=[];
+    playerDeck=[];
+    compDeck=[];
+    turn=1; playerWins=0; compWins=0;
     logDiv.textContent='카드를 섞는 중...';
-    shuffleDecks();
-    setTimeout(()=>{
-        logDiv.textContent='카드를 선택하세요.';
-        renderCards();
-    },800);
+    createPool();
 }
 
 startGame();

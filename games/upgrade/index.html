@@ -91,11 +91,20 @@ function getWeaponIcon(){
 }
 
 function getSuccessRate(){
-    if(level===0) return 100;
-    let rate=100;
-    for(let i=1;i<=level;i++) rate-=i;
-    return Math.max(rate,5);
+    if(level === 0) return 100; // +0은 항상 100%
+    let rate = 100;
+
+    for(let i = 1; i <= level; i++){
+        if(i <= 5){
+            rate -= (6 - i); // 1~5레벨: 5,4,3,2,1
+        } else {
+            rate -= 2; // 6레벨부터 2씩 감소
+        }
+    }
+
+    return Math.max(rate, 5); // 최소 성공률 5%
 }
+
 
 function log(msg){
     document.getElementById("log").innerText = msg;

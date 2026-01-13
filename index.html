@@ -84,5 +84,77 @@ document.getElementById('boardBtn').onclick = function() {
 };
 </script>
 
+    <h1>📜 자유 게시판</h1>
+
+<!-- 로그인 -->
+<div id="loginDiv">
+    <input type="text" id="loginName" placeholder="이름 입력">
+    <button onclick="login()">로그인</button>
+</div>
+
+<div id="boardDiv" style="display:none;">
+    <textarea id="content" placeholder="글 내용을 작성하세요"></textarea>
+    <br>
+    <button onclick="addPost()">등록</button>
+    <button onclick="logout()">로그아웃</button>
+    <div id="posts"></div>
+</div>
+
+<script>
+const currentUser = localStorage.getItem('currentUser');
+
+function showBoard() {
+    if (localStorage.getItem('currentUser')) {
+        document.getElementById('loginDiv').style.display = 'none';
+        document.getElementById('boardDiv').style.display = 'block';
+    } else {
+        document.getElementById('loginDiv').style.display = 'block';
+        document.getElementById('boardDiv').style.display = 'none';
+    }
+}
+
+function login() {
+    const name = document.getElementById('loginName').value.trim();
+    if (!name) return alert('이름을 입력하세요!');
+    localStorage.setItem('currentUser', name);
+    showBoard();
+}
+
+function logout() {
+    localStorage.removeItem('currentUser');
+    showBoard();
+}
+
+function addPost() {
+    const content = document.getElementById('content').value.trim();
+    if (!content) return alert('내용을 입력하세요!');
+    
+    const posts = JSON.parse(localStorage.getItem('boardPosts')) || [];
+    posts.push({
+        name: localStorage.getItem('currentUser'),
+        text: content,
+        date: new Date().toLocaleString()
+    });
+    localStorage.setItem('boardPosts', JSON.stringify(posts));
+    document.getElementById('content').value = '';
+    loadPosts();
+}
+
+function loadPosts() {
+    const postsDiv = document.getElementById('posts');
+    const posts = JSON.parse(localStorage.getItem('boardPosts')) || [];
+    postsDiv.innerHTML = '';
+    posts.reverse().forEach(post => {
+        const div = document.createElement('div');
+        div.className = 'post';
+        div.innerHTML = `<strong>${post.name}</strong> · <span class="date">${post.date}</span><div>${post.text}</div>`;
+        postsDiv.appendChild(div);
+    });
+}
+
+showBoard();
+loadPosts();
+</script>
+
 </body>
 </html>

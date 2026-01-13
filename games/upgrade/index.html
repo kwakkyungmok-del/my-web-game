@@ -6,52 +6,144 @@
     <style>
         body {
             margin: 0;
-            background: #111;
+            background: #0f0f0f;
             color: white;
             font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px;
+            padding: 30px;
+            gap: 30px;
+        }
+        .panel {
+            background: #1c1c1c;
+            border-radius: 12px;
+            padding: 20px;
+            width: 300px;
+        }
+        h2 {
+            margin-top: 0;
         }
         button {
-            padding: 12px 20px;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
             font-size: 16px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             background: #ff9800;
             color: black;
-            margin-top: 20px;
         }
-        .box {
-            margin-top: 30px;
-            background: #1c1c1c;
-            padding: 20px 30px;
-            border-radius: 12px;
-            text-align: center;
+        .log {
+            margin-top: 10px;
+            font-size: 14px;
+            min-height: 40px;
+        }
+        .collection-item {
+            background: #2a2a2a;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
-<h1>⚔️ 무기 강화 시뮬레이터</h1>
+<div class="panel">
+    <h2>⚔️ 현재 무기</h2>
+    <div id="weaponName">낡은 검</div>
+    <div id="weaponLevel">+0</div>
 
-<div class="box">
-    <h2 id="weaponName">낡은 검</h2>
-    <p id="level">강화 단계: +0</p>
     <button onclick="upgrade()">강화하기</button>
+    <div class="log" id="log"></div>
+</div>
+
+<div class="panel">
+    <h2>📜 도감 (진화 기록)</h2>
+    <div id="collection"></div>
 </div>
 
 <script>
     let level = 0;
-    const baseName = "낡은 검";
+    let destroyed = false;
+
+    const evolutionStages = [
+        { level: 0, name: "낡은 검" },
+        { level: 5, name: "단단한 검" },
+        { level: 10, name: "강철 검" },
+        { level: 15, name: "불타는 검" },
+        { level: 20, name: "용의 검" }
+    ];
+
+    let discovered = new Set();
+    discovered.add("낡은 검");
+
+    function getCurrentWeaponName() {
+        let current = evolutionStages[0].name;
+        for (let stage of evolutionStages) {
+            if (level >= stage.level) {
+                current = stage.name;
+            }
+        }
+        return current;
+    }
 
     function upgrade() {
-        level++;
-        document.getElementById("level").innerText = "강화 단계: +" + level;
-        document.getElementById("weaponName").innerText = baseName + " +" + level;
+        if (destroyed) {
+            log("무기가 파괴되어 더 이상 강화할 수 없습니다.");
+            return;
+        }
+
+        const chance = Math.random();
+        let result = "";
+
+        if (chance < 0.6) {
+            level++;
+            result = "성공! 강화 단계 상승.";
+        } else if (chance < 0.8) {
+            result = "실패… 아무 일도 일어나지 않았다.";
+        } else if (chance < 0.95) {
+            if (level > 0) {
+                level--;
+                result = "강화 하락! 단계 감소.";
+            } else {
+                result = "실패… 변화 없음.";
+            }
+        } else {
+            destroyed = true;
+            result = "💥 무기 파괴!";
+        }
+
+        updateUI(result);
     }
+
+    function updateUI(message) {
+        const name = getCurrentWeaponName();
+
+        document.getElementById("weaponName").innerText = name;
+        document.getElementById("weaponLevel").innerText = "+" + level;
+
+        if (!discovered.has(name)) {
+            discovered.add(name);
+            addToCollection(name);
+        }
+
+        log(message);
+    }
+
+    function log(text) {
+        document.getElementById("log").innerText = text;
+    }
+
+    function addToCollection(name) {
+        const div = document.createElement("div");
+        div.className = "collection-item";
+        div.innerText = name;
+        document.getElementById("collection").appendChild(div);
+    }
+
+    // 초기 도감 표시
+    addToCollection("낡은 검");
 </script>
 
 </body>

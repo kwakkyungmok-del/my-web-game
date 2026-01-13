@@ -93,8 +93,18 @@
 </div>
 
 <script>
-    let level = 0;
-    let gold = 0;
+   let level = 0;
+let gold = 0;
+
+// 최초 접속 시 1000G 지급
+if (!localStorage.getItem("initGold")) {
+    gold = 1000;
+    localStorage.setItem("initGold", "true");
+    localStorage.setItem("gold", gold);
+} else {
+    gold = parseInt(localStorage.getItem("gold")) || 0;
+}
+
 
     const upgradeCost = 20;
 
@@ -179,9 +189,11 @@
         resetWeapon();
     }
 
-    function updateGold() {
-        document.getElementById("gold").innerText = `💰 ${gold} G`;
-    }
+  function updateGold() {
+    document.getElementById("gold").innerText = `💰 ${gold} G`;
+    localStorage.setItem("gold", gold);
+}
+
 
     function checkAttendance() {
         const today = new Date().toDateString();

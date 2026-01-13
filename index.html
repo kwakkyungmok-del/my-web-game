@@ -105,19 +105,14 @@
   </div>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
-    // ================== Firebase 초기화 ==================
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // ================== Supabase 초기화 ==================
+    const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ================== 자유 게시판 이동 ==================
     document.getElementById('boardBtn').onclick = function() { 
@@ -128,23 +123,31 @@
     const rankingModal = document.getElementById("rankingModal");
     const rankingList = document.getElementById("rankingList");
 
-    document.getElementById("showRankingBtn").onclick = () => {
-        // Firestore에서 top 3 가져오기
-        db.collection('swordRankings').orderBy('level','desc').limit(3).get().then(snapshot=>{
-            if(snapshot.empty){
-                alert("등록된 검이 없습니다.");
-                return;
-            }
-            let html = "";
-            let idx = 1;
-            snapshot.forEach(doc=>{
-                const rec = doc.data();
-                html += `${idx}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}<br>`;
-                idx++;
-            });
-            rankingList.innerHTML = html;
-            rankingModal.style.display = "flex";
+    document.getElementById("showRankingBtn").onclick = async () => {
+        const { data, error } = await supabase
+            .from("sword_rankings")
+            .select("*")
+            .order("level", { ascending: false })
+            .limit(3);
+
+        if(error){
+            alert("순위 불러오기 실패");
+            console.error(error);
+            return;
+        }
+
+        if(data.length === 0){
+            alert("등록된 검이 없습니다.");
+            return;
+        }
+
+        let html = "";
+        data.forEach((rec, idx) => {
+            html += `${idx+1}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}<br>`;
         });
+
+        rankingList.innerHTML = html;
+        rankingModal.style.display = "flex";
     };
 
     document.getElementById("closeRankingBtn").onclick = () => {

@@ -85,6 +85,34 @@ document.getElementById('boardBtn').onclick = function() {
 </script>
 
 </style>
+<!-- 우상단 클릭 게임 버튼 -->
+<button id="clickerBtn">🎮 클릭 게임</button>
+
+<style>
+#clickerBtn {
+    position: fixed;
+    top: 20px;
+    right: 140px;       /* 기존 버튼들과 겹치지 않게 위치 조정 */
+    z-index: 9999;
+    padding: 10px 15px;
+    font-size: 16px;
+    background: #ff9500;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+#clickerBtn:hover {
+    background: #e08600;
+}
+</style>
+
+<script>
+document.getElementById('clickerBtn').onclick = function() {
+    // 절대경로로 GitHub Pages에서 바로 이동
+    location.href = 'clicker/';
+};
+</script>
 
 
 

@@ -24,6 +24,8 @@
 <button id="backBtn" onclick="goBack()">← 뒤로가기</button>
 
 <div class="box">
+    <div id="artisanMsg" style="margin-bottom:10px; color:#34d399; font-weight:bold;">재민이 인사를 건넵니다…</div>
+
     <h2 id="weaponName">낡은 검</h2>
     <div id="weaponIcon" style="font-size:48px; margin:6px 0;">🗡️</div>
     <div id="weaponLevel">+0</div>
@@ -41,6 +43,20 @@
 </div>
 
 <script>
+    const artisanGreetings = [
+    "좋은 하루입니다! 검 강화 준비됐나요?",
+    "강화를 즐기러 왔군요!",
+    "오늘도 강철같이 단단해져 봅시다!",
+    "무기 관리도 중요하죠, 조심하세요!",
+    "힘내세요! 행운이 함께하길!",
+    "강화는 마음가짐부터 시작입니다."
+];
+
+function showRandomGreeting() {
+    const msg = artisanGreetings[Math.floor(Math.random() * artisanGreetings.length)];
+    document.getElementById("artisanMsg").innerText = `재민: "${msg}"`;
+}
+
 let level = 0;
 let gold = 0;
 const upgradeCost = 20;

@@ -30,7 +30,7 @@ h1 { margin-bottom: 20px; }
     user-select: none;
     perspective: 600px;
     position: relative;
-    transition: 0.3s;
+    transition: transform 0.3s;
 }
 .card.flip .front { transform: rotateY(0deg); }
 .card.flip .back { transform: rotateY(180deg); }
@@ -60,6 +60,10 @@ button { padding: 6px 12px; margin: 3px; cursor: pointer; }
 #backBtn,#rulesBtn { position:fixed; padding:8px 12px; border:none; border-radius:5px; cursor:pointer; z-index:9999; }
 #backBtn{top:20px; left:20px; background:#0a84ff; color:white;}
 #rulesBtn{top:20px; right:20px; background:#ff9500; color:white;}
+.effect {
+    position:absolute; font-size:24px; z-index:1000;
+    transition: transform 0.7s linear, opacity 0.7s linear;
+}
 </style>
 </head>
 <body>
@@ -71,8 +75,8 @@ button { padding: 6px 12px; margin: 3px; cursor: pointer; }
 <div id="rulesModal">
 <h3>게임 규칙</h3>
 <p>1. 카드 풀에서 5장 선택 → 전투 시작<br>
-2. 속성 상성: 🔥불>🌿풀>⛰️땅>⚔️철>🟤노말>💧물>🔥불<br>
-3. 공격력(ATK) - 방어력(DEF) × 상성 배수 → 상대 HP 감소<br>
+2. 속성 상성: 🔥>🌿>⛰️>⚔️>🟤>💧>🔥<br>
+3. 공격력 - 방어력 × 상성 배수 → 상대 HP 감소<br>
 4. 상대 5장 모두 리타이어 → 승리!</p>
 <button onclick="closeRules()">닫기</button>
 </div>
@@ -89,7 +93,6 @@ button { padding: 6px 12px; margin: 3px; cursor: pointer; }
 <div id="log">카드 풀에서 5장을 선택하세요.</div>
 
 <script>
-// 카드 정의
 const allCards=[
 {name:'기사',atk:8,def:5,hp:20,attr:'⚔️철'},
 {name:'마법사',atk:6,def:3,hp:15,attr:'🔥불'},
@@ -159,7 +162,7 @@ function renderPoolAndDeck(){
 
 function renderDecks(){
     playerDiv.innerHTML=''; compDiv.innerHTML='';
-    playerDeck.forEach((c,i)=>{
+    playerDeck.forEach(c=>{
         const div=document.createElement('div'); div.className='card flip';
         div.innerHTML=`<div class="front"></div><div class="back">${c.name}<br>${c.attr}<br>HP:${c.hp}</div>`;
         if(c.hp<=0) div.classList.add('retired');
@@ -181,9 +184,25 @@ function startBattle(){
         let idx=Math.floor(Math.random()*pool.length);
         compDeck.push({...pool.splice(idx,1)[0]});
     }
-    logDiv.textContent='전투 시작! 플레이어 카드 선택하세요.';
-    renderDecks();
+    logDiv.textContent='전투 시작! 플레이어 카드 클릭해서 공격!';
     cardPoolDiv.style.display='none';
+}
+
+// 공격/속성 모션
+function showEffect(emoji, fromElem, toElem){
+    const effect=document.createElement('div');
+    effect.className='effect';
+    effect.textContent=emoji;
+    document.body.appendChild(effect);
+    const fromRect=fromElem.getBoundingClientRect();
+    const toRect=toElem.getBoundingClientRect();
+    effect.style.left=fromRect.left + fromRect.width/2 + 'px';
+    effect.style.top=fromRect.top + fromRect.height/2 + 'px';
+    requestAnimationFrame(()=>{
+        effect.style.transform=`translate(${toRect.left - fromRect.left}px, ${toRect.top - fromRect.top}px)`;
+        effect.style.opacity='0';
+    });
+    setTimeout(()=>effect.remove(),700);
 }
 
 // 턴 진행
@@ -194,12 +213,22 @@ function playTurn(cardIndex){
     const compIndex=Math.floor(Math.random()*compDeck.length);
     const compCard=compDeck[compIndex];
 
+    // 속성 상성 배율
     let dmgMultiplier=1;
     if(advantage[playerCard.attr]===compCard.attr) dmgMultiplier=1.5;
     else if(advantage[compCard.attr]===playerCard.attr) dmgMultiplier=0.5;
 
     const playerDmg=Math.max(playerCard.atk-compCard.def,0)*dmgMultiplier;
     const compDmg=Math.max(compCard.atk-playerCard.def,0)*dmgMultiplier;
+
+    // 공격/방어 모션
+    showEffect(playerCard.attr, playerDiv.children[cardIndex], compDiv.children[compIndex]);
+    playerDiv.children[cardIndex].style.transform='translateY(-10px)';
+    compDiv.children[compIndex].style.transform='translateY(10px)';
+    setTimeout(()=>{
+        playerDiv.children[cardIndex].style.transform='';
+        compDiv.children[compIndex].style.transform='';
+    },300);
 
     compCard.hp-=playerDmg; playerCard.hp-=compDmg;
 

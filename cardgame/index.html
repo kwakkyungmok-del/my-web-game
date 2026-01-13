@@ -120,16 +120,23 @@ function initPool(){
 }
 
 
-function selectPoolCard(idx,el){
-    if(selectingCount>=5) return;
-    let selected=cardPool[idx];
+function selectPoolCard(idx, el){
+    if(selectingCount >= 5) return;
+
+    let selected = cardPool[idx];
+
+    // 이미 플레이어 덱에 있으면 선택 무시
+    if(playerDeck.includes(selected)) return;
+
     playerDeck.push(selected);
-    el.style.background='#0af';
-    el.textContent=selected.emoji+' '+selected.name;
+    el.style.background = '#0af';
+    el.textContent = selected.emoji + ' ' + selected.name;
     selectingCount++;
     log(`선택한 카드 ${selectingCount}/5`);
-    if(selectingCount===5) startBattle();
+
+    if(selectingCount === 5) startBattle();
 }
+
 
 function startBattle(){
     cardPoolDiv.style.display='none';

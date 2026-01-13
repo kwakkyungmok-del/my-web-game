@@ -56,9 +56,13 @@
 
 <h1>📜 자유 게시판</h1>
 
+<!-- 이름 입력칸 추가 -->
+<input type="text" id="username" placeholder="이름을 입력하세요" style="width:200px; padding:5px; margin-bottom:10px;">
+
 <textarea id="content" placeholder="여기에 하고 싶은 말 써라..."></textarea>
 <br>
 <button onclick="addPost()">등록</button>
+
 
 <div id="posts"></div>
 
@@ -67,37 +71,49 @@
 <script>
     const postsDiv = document.getElementById('posts');
 
-    function loadPosts() {
-        const posts = JSON.parse(localStorage.getItem('boardPosts')) || [];
-        postsDiv.innerHTML = '';
-        posts.reverse().forEach(post => {
-            const div = document.createElement('div');
-            div.className = 'post';
-            div.innerHTML = `
-                <div>${post.text}</div>
-                <div class="date">${post.date}</div>
-            `;
-            postsDiv.appendChild(div);
-        });
+  function loadPosts() {
+    const posts = JSON.parse(localStorage.getItem('boardPosts')) || [];
+    postsDiv.innerHTML = '';
+    posts.reverse().forEach(post => {
+        const div = document.createElement('div');
+        div.className = 'post';
+        div.innerHTML = `
+            <strong>${post.name}</strong> · <span class="date">${post.date}</span>
+            <div>${post.text}</div>
+        `;
+        postsDiv.appendChild(div);
+    });
+}
+
+
+ function addPost() {
+    const username = document.getElementById('username').value.trim();
+    const content = document.getElementById('content').value.trim();
+
+    if (!username) {
+        alert('이름을 입력해주세요!');
+        return;
+    }
+    if (!content) {
+        alert('내용 좀 써라 ㅋㅋ');
+        return;
     }
 
-    function addPost() {
-        const content = document.getElementById('content').value.trim();
-        if (!content) {
-            alert('내용 좀 써라 ㅋㅋ');
-            return;
-        }
+    const posts = JSON.parse(localStorage.getItem('boardPosts')) || [];
+    posts.push({
+        name: username,               // 이름 추가
+        text: content,
+        date: new Date().toLocaleString()
+    });
 
-        const posts = JSON.parse(localStorage.getItem('boardPosts')) || [];
-        posts.push({
-            text: content,
-            date: new Date().toLocaleString()
-        });
+    localStorage.setItem('boardPosts', JSON.stringify(posts));
 
-        localStorage.setItem('boardPosts', JSON.stringify(posts));
-        document.getElementById('content').value = '';
-        loadPosts();
-    }
+    // 입력칸 초기화
+    document.getElementById('username').value = '';
+    document.getElementById('content').value = '';
+    loadPosts();
+}
+
 
     function goBack() {
         window.location.href = "https://kwakkyungmok-del.github.io/my-web-game/";

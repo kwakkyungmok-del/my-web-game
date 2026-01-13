@@ -2,320 +2,211 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>전략 속성 카드 게임</title>
+<title>카드 전투 게임</title>
 <style>
-body {
-    background: #0f0f0f;
-    color: white;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 20px;
-}
-h1 { margin-bottom: 20px; }
-
-#cardPool, #playerDeck, #opponentDeck {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.card {
-    width: 100px;
-    height: 140px;
-    perspective: 600px;
-    cursor: pointer;
-    position: relative;
-    transition: transform 0.3s;
-}
-
-.cardInner {
-    width: 100%;
-    height: 100%;
-    transition: transform 0.5s;
-    transform-style: preserve-3d;
-    position: relative;
-}
-
-.front, .back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    font-size: 16px;
-    text-align: center;
-}
-
-.front { background: #1c1c1c; color: white; transform: rotateY(180deg); }
-.back { background: #2a2a2a; color: white; }
-
-.selected { border: 3px solid #0a84ff; transform: scale(1.2);}
-.retired { opacity:0.3; cursor:default; }
-
-#log { min-height: 80px; margin-top: 20px; }
-
-button { padding: 6px 12px; margin: 3px; cursor: pointer; }
-
-#rulesModal {
-    display:none;
-    position:fixed; top:50%; left:50%;
-    transform:translate(-50%, -50%);
-    background:#1c1c1c; padding:15px;
-    border-radius:10px;
-    width:300px; text-align:left;
-    z-index:10000;
-}
-
-#backBtn,#rulesBtn,#restartBtn { position:fixed; padding:8px 12px; border:none; border-radius:5px; cursor:pointer; z-index:9999; }
-#backBtn{top:20px; left:20px; background:#0a84ff; color:white;}
-#rulesBtn{top:20px; right:20px; background:#ff9500; color:white;}
-#restartBtn{top:60px; right:20px; background:#28a745; color:white; display:none;}
-
-.effect {
-    position:absolute; font-size:32px; z-index:1000;
-    transition: transform 0.7s linear, opacity 0.7s linear;
-}
+body { background:#0f0f0f; color:white; font-family:Arial; text-align:center; margin:0; padding:0;}
+h1 { padding:20px;}
+#gameArea { display:flex; justify-content:space-around; margin-top:20px;}
+.deck { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.card { width:80px; height:120px; background:#222; border-radius:8px; cursor:pointer; perspective:600px; position:relative;}
+.cardInner { width:100%; height:100%; transition: transform 0.5s; transform-style: preserve-3d;}
+.card .front, .card .back { position:absolute; width:100%; height:100%; backface-visibility:hidden; display:flex; justify-content:center; align-items:center; flex-direction:column; border-radius:8px;}
+.card .front { background:#1c1c1c; font-size:14px; transform:rotateY(180deg);}
+.card .back { background:#444; }
+.selected { border:2px solid #0a84ff; }
+.retired { opacity:0.3; }
+#log { margin-top:20px; min-height:30px; }
+button { padding:8px 15px; margin:5px; border:none; border-radius:5px; cursor:pointer;}
+#ruleBtn { position:fixed; top:20px; right:20px; background:#0a84ff; color:white;}
+#backBtn { position:fixed; top:20px; left:20px; background:#ff3b30; color:white;}
+#restartBtn { display:none; margin-top:20px; background:#34c759; color:white;}
+#ruleUI { display:none; position:fixed; top:60px; left:50%; transform:translateX(-50%); background:#222; color:white; padding:15px; border-radius:8px; z-index:100; }
+.cardEffect { position:absolute; font-size:20px; z-index:50; animation:moveEffect 0.7s forwards;}
+@keyframes moveEffect { 0% {opacity:1; transform:translate(0,0);} 100% {opacity:0; transform:translate(50px,-50px);} }
 </style>
 </head>
 <body>
 
-<h1>전략 속성 카드 게임</h1>
-<button id="backBtn">&lt; 돌아가기</button>
-<button id="rulesBtn">규칙</button>
-<button id="restartBtn">다시 시작</button>
-
-<div id="rulesModal">
-<h3>게임 규칙</h3>
-<p>
-1. 카드 20장 중 5장 선택 후 전투<br>
-2. 속성 상성: 🔥>🌿>⛰️>⚔️>🟤>💧>🔥<br>
-3. 선택한 카드로 상대 카드 선택 → 공격<br>
-4. 속성 유리: 1.5배, 불리: 0.5배, 절반 피해 적용<br>
-5. 상대 5장 리타이어 시 승리
-</p>
-<button onclick="closeRules()">닫기</button>
+<h1>⚔️ 카드 전투 게임</h1>
+<div>
+<button id="ruleBtn">규칙</button>
+<button id="backBtn">메인으로</button>
 </div>
 
-<h3>카드 풀 (뒤집힌 상태)</h3>
-<div id="cardPool"></div>
+<div id="ruleUI">
+<p>카드 속성: 불🔥 > 풀🌿 > 물💧 > 땅🌍 > 철⚙️ > 노말✨ > 불🔥</p>
+<p>공격력 - 상대 HP 감소, 방어력 적용</p>
+<p>카드 5장 소진 시 패배</p>
+</div>
 
-<h3>내 덱</h3>
-<div id="playerDeck"></div>
+<div id="gameArea">
+    <div>
+        <h3>내 덱</h3>
+        <div id="playerDeck" class="deck"></div>
+    </div>
+    <div>
+        <h3>상대 덱</h3>
+        <div id="compDeck" class="deck"></div>
+    </div>
+</div>
 
-<h3>상대 덱</h3>
-<div id="opponentDeck"></div>
-
-<div id="log">카드 풀에서 5장을 선택하세요.</div>
+<div id="log"></div>
+<button id="restartBtn">다시 시작</button>
 
 <script>
-const allCards=[
-{name:'기사',emoji:'🛡️',atk:8,def:5,hp:20,attr:'⚔️철'},
-{name:'마법사',emoji:'🔥',atk:6,def:3,hp:15,attr:'🔥불'},
-{name:'용',emoji:'🐲',atk:10,def:7,hp:25,attr:'🔥불'},
-{name:'도적',emoji:'🧥',atk:5,def:4,hp:18,attr:'🟤노말'},
-{name:'궁수',emoji:'🏹',atk:7,def:3,hp:16,attr:'🌿풀'},
-{name:'성직자',emoji:'💧',atk:4,def:6,hp:20,attr:'💧물'},
-{name:'늑대',emoji:'🐺',atk:6,def:4,hp:18,attr:'🌿풀'},
-{name:'거인',emoji:'👹',atk:9,def:8,hp:30,attr:'⛰️땅'},
-{name:'좀비',emoji:'🧟',atk:5,def:3,hp:22,attr:'🟤노말'},
-{name:'고블린',emoji:'👺',atk:4,def:2,hp:15,attr:'⚔️철'},
-{name:'정령',emoji:'🧚',atk:6,def:5,hp:17,attr:'💧물'},
-{name:'해적',emoji:'🏴‍☠️',atk:7,def:4,hp:19,attr:'🔥불'},
-{name:'닌자',emoji:'🗡',atk:8,def:3,hp:16,attr:'🟤노말'},
-{name:'사제',emoji:'🙏',atk:3,def:6,hp:18,attr:'🌿풀'},
-{name:'엘프',emoji:'🧝',atk:7,def:5,hp:20,attr:'🌿풀'},
-{name:'드래곤',emoji:'🐉',atk:10,def:10,hp:35,attr:'🔥불'},
-{name:'바람정령',emoji:'🌪️',atk:5,def:5,hp:15,attr:'💧물'},
-{name:'트롤',emoji:'🗿',atk:9,def:7,hp:28,attr:'⛰️땅'},
-{name:'유령',emoji:'👻',atk:6,def:2,hp:15,attr:'🟤노말'},
-{name:'곰',emoji:'🐻',atk:8,def:6,hp:25,attr:'⚔️철'}
+// 카드 정의
+const allCards = [
+  {name:"도적", emoji:"🧥", attr:"노말", atk:5, def:2, hp:10},
+  {name:"드래곤", emoji:"🐲", attr:"불", atk:8, def:4, hp:12},
+  {name:"닌자", emoji:"🥷", attr:"풀", atk:6, def:3, hp:11},
+  {name:"기사", emoji:"🛡️", attr:"철", atk:7, def:5, hp:13},
+  {name:"마법사", emoji:"🧙", attr:"물", atk:6, def:2, hp:10},
+  {name:"거인", emoji:"🦶", attr:"땅", atk:7, def:3, hp:12},
+  {name:"정령", emoji:"🧚", attr:"노말", atk:5, def:4, hp:11},
+  {name:"야수", emoji:"🐺", attr:"불", atk:6, def:2, hp:10},
+  {name:"궁수", emoji:"🏹", attr:"풀", atk:5, def:3, hp:11},
+  {name:"도깨비", emoji:"👹", attr:"땅", atk:7, def:4, hp:12},
+  {name:"기사2", emoji:"🛡️", attr:"철", atk:6, def:5, hp:11},
+  {name:"드래곤2", emoji:"🐲", attr:"불", atk:7, def:3, hp:12},
+  {name:"닌자2", emoji:"🥷", attr:"풀", atk:6, def:2, hp:10},
+  {name:"마법사2", emoji:"🧙", attr:"물", atk:5, def:3, hp:11},
+  {name:"거인2", emoji:"🦶", attr:"땅", atk:7, def:4, hp:12},
+  {name:"정령2", emoji:"🧚", attr:"노말", atk:5, def:2, hp:10},
+  {name:"야수2", emoji:"🐺", attr:"불", atk:6, def:3, hp:11},
+  {name:"궁수2", emoji:"🏹", attr:"풀", atk:5, def:4, hp:12},
+  {name:"도깨비2", emoji:"👹", attr:"땅", atk:7, def:3, hp:11},
+  {name:"기사3", emoji:"🛡️", attr:"철", atk:6, def:4, hp:12}
 ];
 
-const advantage={'🔥불':'🌿풀','🌿풀':'⛰️땅','⛰️땅':'⚔️철','⚔️철':'🟤노말','🟤노말':'💧물','💧물':'🔥불'};
-
-let playerDeck=[], compDeck=[], turn=1;
+let playerDeck=[], compDeck=[];
 let selectedPlayer=null, selectedComp=null;
+let battleStarted=false;
 
-const cardPoolDiv=document.getElementById('cardPool');
-const playerDiv=document.getElementById('playerDeck');
-const compDiv=document.getElementById('opponentDeck');
-const logDiv=document.getElementById('log');
-const restartBtn=document.getElementById('restartBtn');
+// 유틸: 속성 승리 계산
+function getMultiplier(att,def){ 
+    const winMap={ "불":"풀","풀":"물","물":"불","땅":"철","철":"노말","노말":"불"}; 
+    return winMap[att]===def ? 2 : (winMap[def]===att ? 0.5 :1);
+}
 
-document.getElementById('backBtn').onclick=()=>{location.href='../';};
-document.getElementById('rulesBtn').onclick=()=>{document.getElementById('rulesModal').style.display='block';};
-function closeRules(){document.getElementById('rulesModal').style.display='none';}
+function shuffle(array){ return array.sort(()=>Math.random()-0.5);}
 
-// 초기화
+// 게임 시작
 function initGame(){
-    playerDeck=[]; compDeck=[]; turn=1; selectedPlayer=null; selectedComp=null;
-    restartBtn.style.display='none';
-    renderCardPool();
-    renderDecks();
-    logDiv.textContent='카드 풀에서 5장을 선택하세요.';
-}
-
-function renderCardPool(){
-    cardPoolDiv.innerHTML='';
-    allCards.forEach((c,i)=>{
-        const div=document.createElement('div');
-        div.className='card';
-        div.innerHTML=`<div class="cardInner"><div class="front"></div><div class="back"></div></div>`;
-        div.onclick=()=>pickCard(i);
-        cardPoolDiv.appendChild(div);
-    });
-}
-
-function pickCard(index){
-    if(playerDeck.length>=5) return;
-    playerDeck.push({...allCards[index]});
-    allCards.splice(index,1);
-    renderCardPool();
-    renderDecks();
-    if(playerDeck.length===5) startBattle();
-}
-
-function startBattle(){
-    // 컴퓨터 5장 랜덤
-    let pool=[...allCards];
-    for(let i=0;i<5;i++){
-        let idx=Math.floor(Math.random()*pool.length);
-        compDeck.push({...pool.splice(idx,1)[0]});
-    }
-    cardPoolDiv.style.display='none';
-    logDiv.textContent='카드 선택 완료! 내 덱에서 공격할 카드를 선택하세요.';
+    playerDeck=[]; compDeck=[];
+    selectedPlayer=null; selectedComp=null;
+    battleStarted=false;
+    document.getElementById('restartBtn').style.display='none';
     
-    // 모든 전투 덱 카드 앞면 공개
+    // 5장 랜덤
+    let pool=[...allCards]; shuffle(pool);
+    playerDeck=pool.splice(0,5); compDeck=pool.splice(0,5);
     renderDecks(true);
+    log("카드를 선택하세요.");
 }
 
-function renderDecks(showFront=false){
+// 카드 렌더링
+function renderDecks(showFront=true){
+    const playerDiv=document.getElementById('playerDeck');
+    const compDiv=document.getElementById('compDeck');
     playerDiv.innerHTML=''; compDiv.innerHTML='';
     
-    playerDeck.forEach((c,idx)=>{
+    playerDeck.forEach((c,i)=>{
         const div=document.createElement('div');
-        div.className='card';
-        if(selectedPlayer===idx) div.classList.add('selected');
-        
-        const inner=document.createElement('div');
-        inner.className='cardInner';
-        if(showFront) inner.style.transform='rotateY(180deg)'; // 전투 카드 전부 앞면
-        else inner.style.transform='rotateY(0deg)'; // 선택 전 뒤집힘
-        
-        const front=document.createElement('div');
-        front.className='front';
-        front.innerHTML=showFront? `${c.emoji}<br>${c.name}<br>${c.attr}<br>HP:${c.hp}` : '';
-        
-        const back=document.createElement('div');
-        back.className='back';
-        back.innerHTML=''; // 뒤집힌 상태에서는 완전히 빈 카드
-        
-        inner.appendChild(front);
-        inner.appendChild(back);
+        div.className='card'; if(selectedPlayer===i) div.classList.add('selected');
+        const inner=document.createElement('div'); inner.className='cardInner'; 
+        inner.style.transform=showFront?'rotateY(180deg)':'rotateY(0deg)';
+        const front=document.createElement('div'); front.className='front'; front.innerHTML=`${c.emoji}<br>${c.name}<br>${c.attr}<br>HP:${c.hp}`;
+        const back=document.createElement('div'); back.className='back'; back.innerHTML='';
+        inner.appendChild(front); inner.appendChild(back);
         div.appendChild(inner);
-        
         if(c.hp<=0) div.classList.add('retired');
-        div.onclick=()=>{if(c.hp>0) selectPlayerCard(idx);}
+        div.onclick=()=>{if(!battleStarted) { selectedPlayer=i; log("공격할 상대 카드 선택"); } else if(selectedPlayer===i) log("이 카드로 이미 공격중"); };
         playerDiv.appendChild(div);
     });
 
-    compDeck.forEach((c,idx)=>{
+    compDeck.forEach((c,i)=>{
         const div=document.createElement('div');
         div.className='card';
-        if(selectedComp===idx) div.classList.add('selected');
-
-        const inner=document.createElement('div');
-        inner.className='cardInner';
-        inner.style.transform='rotateY(180deg)'; // 전투 카드 모두 앞면 표시
-
-        const front=document.createElement('div');
-        front.className='front';
-        front.innerHTML=`${c.emoji}<br>${c.name}<br>${c.attr}<br>HP:${c.hp}`;
-        const back=document.createElement('div');
-        back.className='back';
-        back.innerHTML='';
-
-        inner.appendChild(front);
-        inner.appendChild(back);
+        const inner=document.createElement('div'); inner.className='cardInner';
+        inner.style.transform='rotateY(180deg)'; // 항상 앞면
+        const front=document.createElement('div'); front.className='front'; front.innerHTML=`${c.emoji}<br>${c.name}<br>${c.attr}<br>HP:${c.hp}`;
+        const back=document.createElement('div'); back.className='back'; back.innerHTML='';
+        inner.appendChild(front); inner.appendChild(back);
         div.appendChild(inner);
-
         if(c.hp<=0) div.classList.add('retired');
-        div.onclick=()=>{if(selectedPlayer!==null && c.hp>0) selectCompCard(idx);}
+        div.onclick=()=>{if(selectedPlayer!==null && battleStarted) attack(i);};
         compDiv.appendChild(div);
     });
 }
 
-function selectPlayerCard(idx){
-    selectedPlayer=idx;
-    renderDecks();
-    logDiv.textContent=`${playerDeck[idx].name} 선택 완료! 상대 카드를 선택하세요.`;
+// 로그 출력
+function log(txt){ document.getElementById('log').textContent=txt; }
+
+// 공격
+function attack(compIdx){
+    if(selectedPlayer===null) return;
+    battleStarted=true;
+    const p=playerDeck[selectedPlayer];
+    const c=compDeck[compIdx];
+    
+    // 플레이어 공격
+    let multiplier=getMultiplier(p.attr,c.attr);
+    let dmg=Math.max(p.atk - c.def,0)*multiplier;
+    c.hp=Math.max(c.hp-dmg,0);
+    showEffect(c.emoji,compDeck[compIdx]); // 이펙트
+    
+    log("상대 공격 중...");
+    
+    // 컴퓨터 공격 (1초 후)
+    setTimeout(()=>{
+        const alive=playerDeck.filter(x=>x.hp>0);
+        if(alive.length===0){ endGame(false); return; }
+        const compCard=compDeck[Math.floor(Math.random()*compDeck.length)];
+        const targets=playerDeck.filter(x=>x.hp>0);
+        const playerTarget=targets[Math.floor(Math.random()*targets.length)];
+        let mult=getMultiplier(compCard.attr,playerTarget.attr);
+        let dmg2=Math.max(compCard.atk - playerTarget.def,0)*mult;
+        playerTarget.hp=Math.max(playerTarget.hp-dmg2,0);
+        showEffect(compCard.emoji,playerTarget,true);
+        renderDecks(true);
+        
+        checkEnd();
+        selectedPlayer=null;
+        battleStarted=false;
+        log("카드를 선택하세요.");
+    },800);
 }
 
-function selectCompCard(idx){
-    selectedComp=idx;
-    executeAttack();
+// 이펙트
+function showEffect(emoji,target,isPlayer=false){
+    const div=document.createElement('div');
+    div.className='cardEffect'; div.textContent=emoji;
+    document.body.appendChild(div);
+    const rect=document.querySelectorAll('.card')[isPlayer?playerDeck.indexOf(target):compDeck.indexOf(target)].getBoundingClientRect();
+    div.style.left=rect.left+'px'; div.style.top=rect.top+'px';
+    setTimeout(()=>div.remove(),700);
 }
 
-function executeAttack(){
-    if(selectedPlayer===null || selectedComp===null) return;
-    const pCard=playerDeck[selectedPlayer];
-    const cCard=compDeck[selectedComp];
-
-    let dmgMultiplier=1;
-    if(advantage[pCard.attr]===cCard.attr) dmgMultiplier=1.5;
-    else if(advantage[cCard.attr]===pCard.attr) dmgMultiplier=0.5;
-
-    const pDmg=Math.max(pCard.atk - cCard.def,0) * dmgMultiplier;
-    const cDmg=Math.max(cCard.atk - pCard.def,0) * 0.5; // 절반 피해
-
-    showEffect(pCard.emoji, playerDiv.children[selectedPlayer], compDiv.children[selectedComp]);
-    pCard.hp-=pDmg;
-    cCard.hp-=cDmg;
-
-    let msg=`${pCard.name} 공격! ${pCard.name} ${pDmg.toFixed(1)} 데미지, ${cCard.name} ${cDmg.toFixed(1)} 데미지<br>`;
-    if(pCard.hp<=0){ playerDeck.splice(selectedPlayer,1); selectedPlayer=null; msg+=`${pCard.name} 리타이어!<br>`;}
-    if(cCard.hp<=0){ compDeck.splice(selectedComp,1); selectedComp=null; msg+=`${cCard.name} 리타이어!<br>`;}
-
-    logDiv.innerHTML=msg;
-
-    renderDecks();
-    selectedPlayer=null; selectedComp=null;
-
-    // 승패 체크
-    if(playerDeck.length===0 || compDeck.length===0){
-        let final='';
-        if(playerDeck.length>compDeck.length) final='승리!';
-        else if(playerDeck.length<compDeck.length) final='패배!';
-        else final='무승부!';
-        logDiv.innerHTML+=`<br>게임 종료! ${final}`;
-        restartBtn.style.display='block';
-    }
+// 게임 종료
+function checkEnd(){
+    const pAlive=playerDeck.filter(x=>x.hp>0).length;
+    const cAlive=compDeck.filter(x=>x.hp>0).length;
+    if(pAlive===0) endGame(false);
+    else if(cAlive===0) endGame(true);
 }
 
-function showEffect(emoji, fromElem, toElem){
-    const effect=document.createElement('div');
-    effect.className='effect';
-    effect.textContent=emoji;
-    document.body.appendChild(effect);
-    const fromRect=fromElem.getBoundingClientRect();
-    const toRect=toElem.getBoundingClientRect();
-    effect.style.left=fromRect.left + fromRect.width/2 + 'px';
-    effect.style.top=fromRect.top + fromRect.height/2 + 'px';
-    requestAnimationFrame(()=>{
-        effect.style.transform=`translate(${toRect.left - fromRect.left}px, ${toRect.top - fromRect.top}px)`;
-        effect.style.opacity='0';
-    });
-    setTimeout(()=>effect.remove(),700);
+function endGame(win){
+    log(win?"승리!":"패배!");
+    document.getElementById('restartBtn').style.display='inline-block';
 }
 
-restartBtn.onclick=()=>{initGame();};
+// 버튼 이벤트
+document.getElementById('ruleBtn').onclick=()=>{ const ru=document.getElementById('ruleUI'); ru.style.display=ru.style.display==='none'?'block':'none'; }
+document.getElementById('backBtn').onclick=()=>{ window.location.href='../'; }
+document.getElementById('restartBtn').onclick=()=>{ initGame(); }
+
 initGame();
 </script>
+
 </body>
 </html>

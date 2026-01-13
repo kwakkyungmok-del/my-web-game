@@ -18,6 +18,40 @@ button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px;
 #artisanMsg { margin-bottom:10px; color:#34d399; font-weight:bold; }
 .collection { max-height:120px; overflow-y:auto; background:#0f0f0f; padding:6px; border-radius:6px; font-size:12px; margin-top:10px; text-align:left; }
 .item { background:#222; margin-bottom:4px; padding:4px; border-radius:4px; }
+
+/* ====== 추가: 기록 등록 모달 UI ====== */
+#recordModal {
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.7);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+#recordModal .modalBox {
+    background:#1a1a1a;
+    padding:20px;
+    border-radius:12px;
+    width:280px;
+    text-align:center;
+}
+#recordModal input {
+    width:100%;
+    padding:8px;
+    margin:10px 0;
+    border:none;
+    border-radius:6px;
+}
+#recordModal .saveBtn {
+    background:#f59e0b;
+    color:black;
+}
+#recordModal .closeBtn {
+    background:#333;
+    color:white;
+}
 </style>
 </head>
 <body>
@@ -36,18 +70,21 @@ button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px;
     <button id="sellBtn">무기 판매</button>
     <button id="attendanceBtn">출석 체크</button>
     <button id="rescueBtn">긴급 지원 받기</button>
-    <!-- 검 기록 등록 영역 -->
-<div id="registerSwordDiv" style="margin-top:10px; display:none;">
-    <input type="text" id="swordOwner" placeholder="닉네임 입력" style="width:60%; padding:4px; border-radius:4px; border:none; margin-right:4px;">
-    <button id="registerSwordBtn" style="padding:5px 10px; border:none; border-radius:4px; background:#f59e0b; cursor:pointer;">등록</button>
-</div>
-
-<button id="showRegisterBtn" style="margin-top:6px; background:#3b82f6; color:white;">검 기록 등록</button>
-
+    <button id="openRecordBtn" style="background:#6366f1; color:white;">검 기록 등록</button>
 
     <div id="log">강화를 시작하세요.</div>
 
     <div class="collection" id="collection"></div>
+</div>
+
+<!-- ====== 기록 등록 모달 ====== -->
+<div id="recordModal">
+    <div class="modalBox">
+        <h3>검 기록 등록</h3>
+        <input type="text" id="recordName" placeholder="닉네임 입력">
+        <button class="saveBtn" id="saveRecordBtn">등록</button>
+        <button class="closeBtn" id="closeRecordBtn">닫기</button>
+    </div>
 </div>
 
 <script>
@@ -99,20 +136,17 @@ function getWeaponIcon(){
 }
 
 function getSuccessRate(){
-    if(level === 0) return 100; // +0은 항상 100%
+    if(level === 0) return 100;
     let rate = 100;
-
     for(let i = 1; i <= level; i++){
         if(i <= 5){
-            rate -= (6 - i); // 1~5레벨: 5,4,3,2,1
+            rate -= (6 - i);
         } else {
-            rate -= 2; // 6레벨부터 2씩 감소
+            rate -= 2;
         }
     }
-
-    return Math.max(rate, 5); // 최소 성공률 5%
+    return Math.max(rate, 5);
 }
-
 
 function log(msg){
     document.getElementById("log").innerText = msg;
@@ -175,7 +209,6 @@ function upgrade(){
         log("강화 성공! +1");
         showRandomGreeting();
 
-        // 번쩍/흔들림 효과
         box.style.transform = "scale(1.05)";
         box.style.background = "#2a2a2a";
         setTimeout(()=>{
@@ -193,38 +226,6 @@ function upgrade(){
     }
     updateWeapon();
 }
-// 등록 UI 보이기
-document.getElementById("showRegisterBtn").addEventListener("click", () => {
-    document.getElementById("registerSwordDiv").style.display = "block";
-});
-
-// 등록 버튼 클릭
-document.getElementById("registerSwordBtn").addEventListener("click", () => {
-    const owner = document.getElementById("swordOwner").value.trim();
-    if(owner === ""){
-        alert("닉네임을 입력하세요!");
-        return;
-    }
-    const record = {
-        owner: owner,
-        name: getWeaponName(),
-        level: level,
-        attack: level*5+10,  // 공격력 예시, 필요하면 계산식 수정
-        timestamp: new Date().toISOString()
-    };
-    
-    // localStorage에 저장
-    let allRecords = JSON.parse(localStorage.getItem("swordRankings") || "[]");
-    allRecords.push(record);
-    
-    // 레벨 기준 내림차순 정렬 후 상위 3개만 저장
-    allRecords.sort((a,b)=>b.level - a.level);
-    localStorage.setItem("swordRankings", JSON.stringify(allRecords));
-
-    alert("검 기록이 등록되었습니다!");
-    document.getElementById("registerSwordDiv").style.display = "none";
-});
-
 
 function resetWeapon(){
     level = 0;
@@ -273,8 +274,41 @@ function checkEmergencyButton(){
 }
 
 function goBack(){
-    window.location.href = "https://kwakkyungmok-del.github.io/my-web-game/"; // ← 여기에 메인 사이트 URL 넣기
+    window.location.href = "https://kwakkyungmok-del.github.io/my-web-game/";
 }
+
+/* ------------------------- 기록 등록 기능 ------------------------- */
+document.getElementById("openRecordBtn").onclick = () => {
+    document.getElementById("recordModal").style.display = "flex";
+};
+
+document.getElementById("closeRecordBtn").onclick = () => {
+    document.getElementById("recordModal").style.display = "none";
+};
+
+document.getElementById("saveRecordBtn").onclick = () => {
+    const name = document.getElementById("recordName").value.trim();
+    if(name === ""){
+        alert("닉네임 입력해라");
+        return;
+    }
+
+    let records = JSON.parse(localStorage.getItem("swordRankings") || "[]");
+
+    records.push({
+        owner: name,
+        weapon: getWeaponName(),
+        level: level,
+        time: new Date().toISOString()
+    });
+
+    records.sort((a,b)=>b.level - a.level);
+    localStorage.setItem("swordRankings", JSON.stringify(records));
+
+    alert("등록 완료!");
+    document.getElementById("recordModal").style.display = "none";
+    document.getElementById("recordName").value = "";
+};
 
 /* ------------------------- 버튼 이벤트 연결 ------------------------- */
 document.getElementById("upgradeBtn").addEventListener("click", upgrade);

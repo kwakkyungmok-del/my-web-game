@@ -4,126 +4,148 @@
     <meta charset="UTF-8">
     <title>무기 강화 시뮬레이터</title>
     <style>
-      body {
-    margin: 0;
-    padding: 0;
-    background: #111;
-    color: #fff;
-    font-family: 'Segoe UI', sans-serif;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        body {
+            margin: 0;
+            padding: 0;
+            background: #111;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-#backBtn {
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    padding: 6px 12px;
-    background: #333;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
+        #backBtn {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            padding: 6px 12px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
 
-#backBtn:hover {
-    background: #555;
-}
+        #backBtn:hover {
+            background: #555;
+        }
 
-.container {
-    width: 320px;
-    padding: 20px;
-    background: #1a1a1a;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-}
+        .container {
+            width: 320px;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
 
-#weaponName {
-    margin: 0;
-    font-size: 22px;
-}
+        #weaponName {
+            margin: 0;
+            font-size: 22px;
+        }
 
-#weaponLevel {
-    margin: 6px 0 12px;
-    color: #aaa;
-}
+        #weaponLevel {
+            margin: 6px 0 6px;
+            color: #aaa;
+        }
 
-#upgradeBtn {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 10px;
-    font-size: 16px;
-    background: #3b82f6;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
+        #gold {
+            margin: 6px 0 12px;
+            color: #facc15;
+            font-weight: bold;
+        }
 
-#upgradeBtn:hover {
-    background: #2563eb;
-}
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
 
-.log {
-    min-height: 24px;
-    margin-bottom: 12px;
-    color: #facc15;
-}
+        #upgradeBtn {
+            background: #3b82f6;
+            color: #fff;
+        }
 
-.collection-box {
-    background: #0f0f0f;
-    padding: 10px;
-    border-radius: 8px;
-}
+        #upgradeBtn:hover {
+            background: #2563eb;
+        }
 
-.collection-box h3 {
-    margin: 0 0 6px 0;
-    font-size: 14px;
-    color: #aaa;
-}
+        #sellBtn, #attendanceBtn {
+            background: #16a34a;
+            color: #fff;
+        }
 
-.collection {
-    max-height: 120px;   /* ★ 여기 중요 */
-    overflow-y: auto;    /* 스크롤 생김 */
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-}
+        #sellBtn:hover, #attendanceBtn:hover {
+            background: #15803d;
+        }
 
-.collection-item {
-    background: #222;
-    padding: 6px;
-    border-radius: 6px;
-    font-size: 12px;
-}
-</style>
+        .log {
+            min-height: 24px;
+            margin: 10px 0;
+            color: #facc15;
+        }
+
+        .collection-box {
+            background: #0f0f0f;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .collection-box h3 {
+            margin: 0 0 6px 0;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .collection {
+            max-height: 120px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .collection-item {
+            background: #222;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+    </style>
 </head>
 <body>
-    <button id="backBtn" onclick="goBack()">← 뒤로가기</button>
 
-    <div class="container">
-        <h1 id="weaponName">낡은 검</h1>
-        <div id="weaponLevel">+0</div>
+<button id="backBtn" onclick="goBack()">← 뒤로가기</button>
 
-        <button id="upgradeBtn" onclick="upgrade()">강화하기</button>
+<div class="container">
+    <h1 id="weaponName">낡은 검</h1>
+    <div id="weaponLevel">+0</div>
+    <div id="gold">💰 0 G</div>
 
-        <div id="log" class="log">강화를 시작하세요.</div>
+    <button id="upgradeBtn" onclick="upgrade()">강화하기 (20G)</button>
+    <button id="sellBtn" onclick="sellWeapon()">무기 판매</button>
+    <button id="attendanceBtn" onclick="checkAttendance()">출석 체크</button>
 
-        <div class="collection-box">
-            <h3>📖 도감</h3>
-            <div id="collection" class="collection"></div>
-        </div>
+    <div id="log" class="log">강화를 시작하세요.</div>
+
+    <div class="collection-box">
+        <h3>📖 도감</h3>
+        <div id="collection" class="collection"></div>
     </div>
-</body>
+</div>
 
 <script>
     let level = 0;
     let destroyed = false;
+    let gold = 0;
 
-    const baseName = "검";
+    const upgradeCost = 20;
 
     const stageNames = [
         { min: 0, name: "낡은" },
@@ -134,14 +156,16 @@
     ];
 
     const extraAdjectives = [
-        "날카로운",
-        "묵직한",
-        "빛나는",
-        "저주받은",
-        "신성한",
-        "광폭한",
-        "심연의",
-        "균열의"
+        "날카로운", "묵직한", "빛나는", "저주받은",
+        "신성한", "광폭한", "균열의", "심연의"
+    ];
+
+    const sellPrices = [
+        { min: 0, price: 10 },
+        { min: 5, price: 50 },
+        { min: 10, price: 150 },
+        { min: 15, price: 400 },
+        { min: 20, price: 1000 }
     ];
 
     let discovered = new Set();
@@ -162,17 +186,20 @@
     function getWeaponName() {
         const stage = getStageName();
         const extra = getExtraAdjective();
-        return extra ? `${stage} ${extra} ${baseName}` : `${stage} ${baseName}`;
-    }
-
-    function resetWeapon() {
-        level = 0;
-        destroyed = false;
-        log("🆕 새로운 무기를 얻었습니다!");
-        updateUI();
+        return extra ? `${stage} ${extra} 검` : `${stage} 검`;
     }
 
     function upgrade() {
+        if (gold < upgradeCost) {
+            log("골드가 부족합니다!");
+            return;
+        }
+
+        gold -= upgradeCost;
+        updateGold();
+
+        if (destroyed) return;
+
         const chance = Math.random();
         let result = "";
 
@@ -180,7 +207,7 @@
             level++;
             result = "성공! 강화 단계 상승.";
         } else if (chance < 0.8) {
-            result = "실패… 아무 일도 일어나지 않았다.";
+            result = "실패… 변화 없음.";
         } else if (chance < 0.95) {
             if (level > 0) {
                 level--;
@@ -189,20 +216,22 @@
                 result = "실패… 변화 없음.";
             }
         } else {
-            result = "💥 무기 파괴! 새로운 무기를 지급합니다.";
-            log(result);
-            setTimeout(resetWeapon, 800);
+            destroyed = true;
+            result = "💥 무기 파괴! 새 무기를 지급합니다...";
+            updateUI(result);
+            setTimeout(() => {
+                resetWeapon();
+            }, 1200);
             return;
         }
-    }
-    
-    function resetWeapon() {
-    level = 0;
-    destroyed = false;
-    updateUI("새로운 낡은 검을 획득했습니다.");
-}
 
         updateUI(result);
+    }
+
+    function resetWeapon() {
+        level = 0;
+        destroyed = false;
+        updateUI("새로운 낡은 검을 획득했습니다.");
     }
 
     function updateUI(message) {
@@ -216,7 +245,7 @@
             addToCollection(name);
         }
 
-        if (message) log(message);
+        log(message);
     }
 
     function log(text) {
@@ -230,13 +259,49 @@
         document.getElementById("collection").appendChild(div);
     }
 
-    document.getElementById("upgradeBtn").addEventListener("click", upgrade);
+    function getSellPrice() {
+        let price = sellPrices[0].price;
+        for (let p of sellPrices) {
+            if (level >= p.min) price = p.price;
+        }
+        return price;
+    }
 
-    updateUI("강화를 시작하세요.");
+    function sellWeapon() {
+        const price = getSellPrice();
+        gold += price;
+        updateGold();
+        resetWeapon();
+        log(`무기를 ${price}G에 판매했습니다.`);
+    }
+
+    function updateGold() {
+        document.getElementById("gold").innerText = `💰 ${gold} G`;
+    }
+
+    function checkAttendance() {
+        const today = new Date().toDateString();
+        const last = localStorage.getItem("attendance");
+
+        if (last === today) {
+            log("오늘은 이미 출석체크 했습니다.");
+            return;
+        }
+
+        const reward = 100;
+        gold += reward;
+        updateGold();
+        localStorage.setItem("attendance", today);
+        log(`출석 보상으로 ${reward}G를 받았습니다!`);
+    }
+
     function goBack() {
-    window.location.href = "../index.html";
-}
+        alert("뒤로가기는 나중에 메인 페이지 만들면 연결하자 😏");
+    }
 
+    // 초기화
+    updateUI("강화를 시작하세요.");
+    updateGold();
 </script>
 
 </body>

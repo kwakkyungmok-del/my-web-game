@@ -45,7 +45,33 @@
 
     <!-- 나중에 여기 카드 계속 추가 -->
 </div>
-<button onclick="location.href='games/board/index.html'" style="margin-top:10px;">📜 자유 게시판</button>
+<!-- 자유 게시판 버튼 -->
+<button id="boardBtn">📜 자유 게시판</button>
+
+<style>
+#boardBtn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;       /* 다른 요소 위에 표시 */
+    padding: 10px 15px;
+    font-size: 16px;
+    background: #0a84ff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+#boardBtn:hover {
+    background: #006be6;
+}
+</style>
+
+<script>
+document.getElementById('boardBtn').onclick = function() {
+    location.href = 'games/board/index.html';
+};
+</script>
 
 </body>
 </html>

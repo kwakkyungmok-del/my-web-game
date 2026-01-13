@@ -4,18 +4,19 @@
 <meta charset="UTF-8">
 <title>내 게임 모음집</title>
 <style>
-body { margin: 0; background: #0f0f0f; color: white; font-family: Arial, sans-serif; }
-h1 { text-align: center; padding: 30px 0; }
-.container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 20px; }
-.card { background: #1c1c1c; border-radius: 12px; padding: 20px; cursor: pointer; transition: 0.2s; }
-.card:hover { transform: scale(1.05); background: #2a2a2a; }
-#boardBtn { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 15px; font-size: 16px; background: #0a84ff; color: white; border: none; border-radius: 5px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-#boardBtn:hover { background: #006be6; }
-#showRankingBtn { position: fixed; top: 20px; left: 20px; padding: 10px 15px; font-size: 16px; background: #6366f1; color: white; border: none; border-radius: 5px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-#showRankingBtn:hover { background: #4f46e5; }
-#rankingModal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
-#rankingModal div { background: #1a1a1a; padding: 20px; border-radius: 12px; width: 300px; max-width: 90%; text-align: left; }
-#rankingModal h3 { margin-top: 0; }
+body { margin:0; background:#0f0f0f; color:#fff; font-family:Arial, sans-serif; }
+h1 { text-align:center; padding:30px 0; }
+.container { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; padding:20px; }
+.card { background:#1c1c1c; border-radius:12px; padding:20px; cursor:pointer; transition:0.2s; }
+.card:hover { transform:scale(1.05); background:#2a2a2a; }
+#boardBtn, #showRankingBtn { position:fixed; padding:10px 15px; font-size:16px; border:none; border-radius:5px; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
+#boardBtn { top:20px; right:20px; background:#0a84ff; color:#fff; }
+#boardBtn:hover { background:#006be6; }
+#showRankingBtn { top:20px; left:20px; background:#6366f1; color:#fff; }
+#showRankingBtn:hover { background:#4f46e5; }
+#rankingModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; }
+#rankingModal div { background:#1a1a1a; padding:20px; border-radius:12px; width:300px; max-width:90%; text-align:left; }
+#rankingModal h3 { margin-top:0; }
 </style>
 </head>
 <body>
@@ -23,11 +24,11 @@ h1 { text-align: center; padding: 30px 0; }
 <h1>🎮 내 게임 모음집</h1>
 
 <div class="container">
-    <div class="card" id="upgradeCard">
+    <div class="card" onclick="location.href='games/upgrade/'">
         <h2>⚔️ 무기 강화 시뮬레이터</h2>
         <p>무기를 강화하고 수식어를 모아보자</p>
     </div>
-    <div class="card" id="cardGameCard">
+    <div class="card" onclick="location.href='cardgame/'">
         <h2>🃏 카드 게임</h2>
         <p>판타지 세상의 카드 전투</p>
     </div>
@@ -44,40 +45,45 @@ h1 { text-align: center; padding: 30px 0; }
   </div>
 </div>
 
-<!-- Supabase SDK 단 1회만 로드 -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// Supabase 전역 객체 생성 (중복 선언 방지)
 if(!window.sb){
-    window.sb = supabase.createClient(
-        "https://lpgcfyisclihwlvlxent.supabase.co",
-        "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9"
-    );
+    const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
-// 페이지 이동
-document.getElementById('upgradeCard').addEventListener('click', ()=>{ location.href='games/upgrade/'; });
-document.getElementById('cardGameCard').addEventListener('click', ()=>{ location.href='cardgame/'; });
-document.getElementById('boardBtn').addEventListener('click', ()=>{ location.href='board/'; });
+/* 게시판 이동 */
+document.getElementById('boardBtn').onclick = () => { location.href = 'board/'; };
 
-// 강화 순위 모달
+/* 강화 순위 */
 const rankingModal = document.getElementById("rankingModal");
 const rankingList = document.getElementById("rankingList");
-
-document.getElementById("showRankingBtn").addEventListener('click', async ()=>{
+document.getElementById("showRankingBtn").onclick = async () => {
     try{
-        const { data, error } = await window.sb.from('swordRankings')
-            .select('*').order('level',{ascending:false}).limit(3);
+        const { data, error } = await sb.from('swordRankings')
+            .select('owner,weapon,level,created_at')
+            .order('level',{ascending:false})
+            .limit(3);
         if(error) throw error;
-        if(!data || data.length===0){ alert("등록된 검이 없습니다."); return; }
-
-        rankingList.innerHTML = data.map((r,i)=>`${i+1}. ${r.owner} - ${r.weapon} Lv.${r.level}`).join("<br>");
-        rankingModal.style.display="flex";
-    }catch(e){ alert("순위 불러오기 실패: "+e.message); }
-});
-
-document.getElementById("closeRankingBtn").addEventListener('click', ()=>{ rankingModal.style.display="none"; });
+        if(!data || data.length===0){
+            alert("등록된 검이 없습니다.");
+            return;
+        }
+        let html = "";
+        data.forEach((rec,idx)=>{
+            html += `${idx+1}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}<br>`;
+        });
+        rankingList.innerHTML = html;
+        rankingModal.style.display = "flex";
+    } catch(e){
+        alert("불러오기 실패:"+e.message);
+    }
+};
+document.getElementById("closeRankingBtn").onclick = ()=>{ rankingModal.style.display="none"; };
 </script>
+
 </body>
 </html>
+

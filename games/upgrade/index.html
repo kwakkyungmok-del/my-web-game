@@ -36,6 +36,14 @@ button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px;
     <button id="sellBtn">무기 판매</button>
     <button id="attendanceBtn">출석 체크</button>
     <button id="rescueBtn">긴급 지원 받기</button>
+    <!-- 검 기록 등록 영역 -->
+<div id="registerSwordDiv" style="margin-top:10px; display:none;">
+    <input type="text" id="swordOwner" placeholder="닉네임 입력" style="width:60%; padding:4px; border-radius:4px; border:none; margin-right:4px;">
+    <button id="registerSwordBtn" style="padding:5px 10px; border:none; border-radius:4px; background:#f59e0b; cursor:pointer;">등록</button>
+</div>
+
+<button id="showRegisterBtn" style="margin-top:6px; background:#3b82f6; color:white;">검 기록 등록</button>
+
 
     <div id="log">강화를 시작하세요.</div>
 
@@ -185,6 +193,38 @@ function upgrade(){
     }
     updateWeapon();
 }
+// 등록 UI 보이기
+document.getElementById("showRegisterBtn").addEventListener("click", () => {
+    document.getElementById("registerSwordDiv").style.display = "block";
+});
+
+// 등록 버튼 클릭
+document.getElementById("registerSwordBtn").addEventListener("click", () => {
+    const owner = document.getElementById("swordOwner").value.trim();
+    if(owner === ""){
+        alert("닉네임을 입력하세요!");
+        return;
+    }
+    const record = {
+        owner: owner,
+        name: getWeaponName(),
+        level: level,
+        attack: level*5+10,  // 공격력 예시, 필요하면 계산식 수정
+        timestamp: new Date().toISOString()
+    };
+    
+    // localStorage에 저장
+    let allRecords = JSON.parse(localStorage.getItem("swordRankings") || "[]");
+    allRecords.push(record);
+    
+    // 레벨 기준 내림차순 정렬 후 상위 3개만 저장
+    allRecords.sort((a,b)=>b.level - a.level);
+    localStorage.setItem("swordRankings", JSON.stringify(allRecords));
+
+    alert("검 기록이 등록되었습니다!");
+    document.getElementById("registerSwordDiv").style.display = "none";
+});
+
 
 function resetWeapon(){
     level = 0;

@@ -206,6 +206,8 @@ function upgrade(){
 
     if(rand <= rate){
         level++;
+        saveSwordRecord(playerName, weaponName, level);
+
         log("강화 성공! +1");
         showRandomGreeting();
 

@@ -97,6 +97,11 @@
 </div>
 
 <script>
+    function goBack() {
+    window.location.href = "index.html"; // 또는 이전 페이지로
+    // window.history.back(); // 이전 페이지로 돌아가기 옵션
+}
+
     let level = 0;
     let gold = 0;
 
@@ -140,39 +145,46 @@
         return Math.max(rate, 5);
     }
 
-    function upgrade() {
-        if (gold < upgradeCost) {
-            log("골드가 부족합니다!");
+   function upgrade() {
+    if (gold < upgradeCost) {
+        log("골드가 부족합니다!");
+        return;
+    }
+
+    gold -= upgradeCost;
+    updateGold();
+
+    const successRate = getSuccessRate();
+    const r = Math.random() * 100;
+
+    if (r <= successRate) {
+        level++;
+        log("강화 성공! +1");
+
+        // 🔹 번쩍 효과
+        const box = document.querySelector('.box');
+        box.style.transition = "transform 0.1s, background 0.1s";
+        box.style.transform = "scale(1.05)";
+        box.style.background = "#2a2a2a";
+        setTimeout(() => {
+            box.style.transform = "scale(1)";
+            box.style.background = "#1a1a1a";
+        }, 100);
+
+    } else {
+        const boom = Math.random();
+        if (boom < 0.05) {
+            log("💥 무기 파괴! 새 무기 지급");
+            resetWeapon();
             return;
-        }
-
-        gold -= upgradeCost;
-        updateGold();
-
-        const successRate = getSuccessRate();
-        const r = Math.random() * 100;
-
-        if (r <= successRate) {
-            level++;
-            log("강화 성공! +1");
         } else {
-            const boom = Math.random();
-            if (boom < 0.05) {
-                log("💥 무기 파괴! 새 무기 지급");
-                resetWeapon();
-                return;
-            } else {
-                log("강화 실패… 변화 없음");
-            }
+            log("강화 실패… 변화 없음");
         }
-
-        updateWeapon();
     }
 
-    function resetWeapon() {
-        level = 0;
-        updateWeapon();
-    }
+    updateWeapon();
+}
+
 
     function updateWeapon() {
         const name = getWeaponName();

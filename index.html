@@ -26,11 +26,11 @@ h1 { text-align: center; padding: 30px 0; }
 <h1>🎮 내 게임 모음집</h1>
 
 <div class="container">
-    <div class="card" onclick="location.href='games/upgrade/'">
+    <div class="card" id="upgradeCard">
         <h2>⚔️ 무기 강화 시뮬레이터</h2>
         <p>무기를 강화하고 수식어를 모아보자</p>
     </div>
-    <div class="card" onclick="location.href='cardgame/'">
+    <div class="card" id="cardGameCard">
         <h2>🃏 카드 게임</h2>
         <p>판타지 세상의 카드 전투</p>
     </div>
@@ -47,36 +47,40 @@ h1 { text-align: center; padding: 30px 0; }
   </div>
 </div>
 
-<!-- Supabase SDK 한 번만 로드 -->
+<!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-if(typeof sb === 'undefined'){
+// ------------------ Supabase 초기화 ------------------
+if(typeof window.sb === 'undefined'){
     const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
     const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
     window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
-/* ------------------- 게시판 이동 ------------------- */
-document.getElementById('boardBtn').onclick = () => {
-    location.href = 'board/';
-};
+// ------------------ 페이지 이동 ------------------
+document.getElementById('upgradeCard').addEventListener('click', ()=>{ location.href='games/upgrade/'; });
+document.getElementById('cardGameCard').addEventListener('click', ()=>{ location.href='cardgame/'; });
+document.getElementById('boardBtn').addEventListener('click', ()=>{ location.href='board/'; });
 
-/* ------------------- 강화 순위 모달 ------------------- */
+// ------------------ 강화 순위 ------------------
 const rankingModal = document.getElementById("rankingModal");
 const rankingList = document.getElementById("rankingList");
 
-document.getElementById("showRankingBtn").onclick = async () => {
-    const { data, error } = await sb.from('swordRankings').select('*').order('level', {ascending:false}).limit(3);
-    if(error){ alert("불러오기 실패:"+error.message); return; }
-    if(data.length===0){ alert("등록된 검이 없습니다."); return; }
+document.getElementById("showRankingBtn").addEventListener('click', async () => {
+    try {
+        const { data, error } = await sb.from('swordRankings').select('*').order('level',{ascending:false}).limit(3);
+        if(error) throw error;
+        if(!data || data.length===0){ alert("등록된 검이 없습니다."); return; }
 
-    let html = "";
-    data.forEach((rec, idx)=>{ html += `${idx+1}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}<br>`; });
-    rankingList.innerHTML = html;
-    rankingModal.style.display = "flex";
-};
+        rankingList.innerHTML = data.map((rec,idx)=>`${idx+1}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}`).join("<br>");
+        rankingModal.style.display = "flex";
+    } catch(e) {
+        alert("순위 불러오기 실패: "+e.message);
+    }
+});
 
-document.getElementById("closeRankingBtn").onclick = () => { rankingModal.style.display = "none"; };
+document.getElementById("closeRankingBtn").addEventListener('click', ()=>{ rankingModal.style.display = "none"; });
+
 </script>
 </body>
 </html>

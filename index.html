@@ -1,16 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
-    <head>
-  <meta charset="UTF-8">
-  <title>My Web Game - 자유 게시판</title>
-  <meta name="description" content="곽경목의 웹게임 사이트: 강화 게임과 자유 게시판">
-  <meta name="keywords" content="곽경목, 웹게임, 강화, 자유게시판">
-  <meta name="robots" content="index, follow">
-</head>
-
 <head>
     <meta charset="UTF-8">
     <title>내 게임 모음집</title>
+    <meta name="description" content="곽경목의 웹게임 사이트: 강화 게임과 자유 게시판">
+    <meta name="keywords" content="곽경목, 웹게임, 강화, 자유게시판">
+    <meta name="robots" content="index, follow">
     <style>
         body {
             margin: 0;
@@ -39,6 +34,25 @@
             transform: scale(1.05);
             background: #2a2a2a;
         }
+
+        /* 자유 게시판 우상단 버튼 */
+        #boardBtn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;       
+            padding: 10px 15px;
+            font-size: 16px;
+            background: #0a84ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        #boardBtn:hover {
+            background: #006be6;
+        }
     </style>
 </head>
 <body>
@@ -46,79 +60,29 @@
 <h1>🎮 내 게임 모음집</h1>
 
 <div class="container">
+    <!-- 기존 강화 게임 카드 -->
     <div class="card" onclick="location.href='games/upgrade/'">
         <h2>⚔️ 무기 강화 시뮬레이터</h2>
         <p>무기를 강화하고 수식어를 모아보자</p>
     </div>
 
-    <!-- 나중에 여기 카드 계속 추가 -->
+    <!-- 클릭형 게임 카드 (강화 게임 카드 바로 아래 중앙 배치) -->
+    <div class="card" onclick="location.href='cardgame/'">
+        <h2>🃏 카드 게임</h2>
+        <p>클릭만으로 점수를 올리고 업그레이드해보자!</p>
+    </div>
 </div>
-<!-- 자유 게시판 버튼 -->
+
+<!-- 자유 게시판 버튼 (우상단 고정) -->
 <button id="boardBtn">📜 자유 게시판</button>
 
-<style>
-/* 우상단 고정, 기존 UI 안 건드림 */
-#boardBtn {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;       /* 다른 요소 위에 표시 */
-    padding: 10px 15px;
-    font-size: 16px;
-    background: #0a84ff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-#boardBtn:hover {
-    background: #006be6;
-}
-</style>
-
 <script>
-// 안전하게 절대경로 사용 (GitHub Pages 기준)
-document.getElementById('boardBtn').onclick = function() {
-    location.href = 'board/';
-};
+    // 자유 게시판 이동
+    document.getElementById('boardBtn').onclick = function() {
+        location.href = 'board/';
+    };
 </script>
-
-</style>
-
-<!-- 우상단 클릭 게임 버튼 -->
-<button id="clickerBtn">🃏 카드 게임</button>
-
-<style>
-#clickerBtn {
-    position: fixed;
-    top: 20px;
-    right: 140px;       /* 기존 버튼들과 겹치지 않게 위치 조정 */
-    z-index: 9999;
-    padding: 10px 15px;
-    font-size: 16px;
-    background: #ff9500;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-#clickerBtn:hover {
-    background: #e08600;
-}
-</style>
-
-<script>
-document.getElementById('clickerBtn').onclick = function() {
-    // 절대경로로 GitHub Pages에서 바로 이동
-    location.href = 'cardgame/';
-};
-</script>
-
-
-
-
-
 
 </body>
 </html>
+

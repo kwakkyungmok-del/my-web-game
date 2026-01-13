@@ -49,6 +49,7 @@
 <button id="boardBtn">📜 자유 게시판</button>
 
 <style>
+/* 우상단 고정, 기존 UI 안 건드림 */
 #boardBtn {
     position: fixed;
     top: 20px;
@@ -61,10 +62,20 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 #boardBtn:hover {
     background: #006be6;
 }
+</style>
+
+<script>
+// 안전하게 절대경로 사용 (GitHub Pages 기준)
+document.getElementById('boardBtn').onclick = function() {
+    location.href = '/my-web-game/games/board/index.html';
+};
+</script>
+
 </style>
 
 <script>

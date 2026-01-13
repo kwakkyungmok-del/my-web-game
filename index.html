@@ -17,6 +17,11 @@
             text-align: center;
             padding: 30px 0;
         }
+        <!-- 무기 강화 순위 버튼 -->
+<div style="text-align:center; margin-top:20px;">
+    <button id="swordRankingBtn" style="padding:10px 15px; background:#f59e0b; color:black; border:none; border-radius:6px; cursor:pointer;">⚔️ 강화 순위 보기</button>
+</div>
+
         .container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -81,6 +86,25 @@
     document.getElementById('boardBtn').onclick = function() {
         location.href = 'board/';
     };
+    document.getElementById("swordRankingBtn").addEventListener("click", () => {
+    let rankings = JSON.parse(localStorage.getItem("swordRankings") || "[]");
+    if(rankings.length === 0){
+        alert("등록된 검이 없습니다.");
+        return;
+    }
+
+    // 레벨 기준 내림차순, 상위 3개
+    rankings.sort((a,b)=>b.level - a.level);
+    const top3 = rankings.slice(0,3);
+
+    let msg = "🔱 강화 순위 (Top 3)\n";
+    top3.forEach((rec, idx)=>{
+        msg += `${idx+1}. ${rec.owner} - ${rec.name} Lv.${rec.level} 공격력:${rec.attack}\n`;
+    });
+
+    alert(msg);
+});
+
 </script>
 
 </body>

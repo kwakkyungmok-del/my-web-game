@@ -4,63 +4,130 @@
     <meta charset="UTF-8">
     <title>무기 강화 시뮬레이터</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            background: #0f0f0f;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #1a1a1a, #050505);
             color: white;
             font-family: Arial, sans-serif;
             display: flex;
-            padding: 30px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .wrapper {
+            display: flex;
             gap: 30px;
+            max-width: 900px;
+            width: 100%;
+            padding: 30px;
         }
+
         .panel {
-            background: #1c1c1c;
-            border-radius: 12px;
-            padding: 20px;
-            width: 300px;
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        h2 {
-            margin-top: 0;
+
+        .main-panel {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
+
+        .side-panel {
+            flex: 0.8;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+        }
+
+        #weaponName {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        #weaponLevel {
+            font-size: 18px;
+            color: #ffb74d;
+            margin-bottom: 20px;
+        }
+
         button {
             width: 100%;
-            padding: 12px;
-            margin-top: 10px;
+            padding: 14px;
             font-size: 16px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            background: #ff9800;
-            color: black;
+            background: linear-gradient(135deg, #ff9800, #ffc107);
+            color: #2b1b00;
+            font-weight: bold;
+            transition: 0.15s;
         }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: none;
+        }
+
         .log {
-            margin-top: 10px;
-            font-size: 14px;
+            margin-top: 16px;
             min-height: 40px;
+            font-size: 14px;
+            opacity: 0.9;
         }
+
         .collection-item {
             background: #2a2a2a;
             margin-bottom: 8px;
-            padding: 8px;
-            border-radius: 6px;
+            padding: 8px 10px;
+            border-radius: 8px;
             font-size: 14px;
+        }
+
+        .collection-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            opacity: 0.85;
         }
     </style>
 </head>
 <body>
 
-<div class="panel">
-    <h2>⚔️ 현재 무기</h2>
-    <div id="weaponName">-</div>
-    <div id="weaponLevel">+0</div>
+<div class="wrapper">
 
-    <button onclick="upgrade()">강화하기</button>
-    <div class="log" id="log"></div>
-</div>
+    <div class="panel main-panel">
+        <h1>⚔️ 무기 강화</h1>
+        <div id="weaponName">-</div>
+        <div id="weaponLevel">+0</div>
 
-<div class="panel">
-    <h2>📜 도감</h2>
-    <div id="collection"></div>
+        <button id="upgradeBtn">강화하기</button>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <div class="panel side-panel">
+        <div class="collection-title">📜 도감</div>
+        <div id="collection"></div>
+    </div>
+
 </div>
 
 <script>
@@ -162,6 +229,8 @@
         div.innerText = name;
         document.getElementById("collection").appendChild(div);
     }
+
+    document.getElementById("upgradeBtn").addEventListener("click", upgrade);
 
     updateUI("강화를 시작하세요.");
 </script>

@@ -12,6 +12,7 @@ body {
     padding: 20px;
 }
 h1 { margin-bottom: 20px; }
+
 #cardPool, #playerDeck, #opponentDeck {
     display: flex;
     justify-content: center;
@@ -19,35 +20,55 @@ h1 { margin-bottom: 20px; }
     gap: 10px;
     margin-bottom: 15px;
 }
+
 .card {
-    width: 100px; height: 140px;
-    display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
-    background: #1c1c1c;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 14px;
-    user-select: none;
+    width: 100px;
+    height: 140px;
     perspective: 600px;
+    cursor: pointer;
     position: relative;
-    transition: transform 0.3s;
 }
-.card.flip .front { transform: rotateY(0deg); }
-.card.flip .back { transform: rotateY(180deg); }
+
+.cardInner {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+    position: relative;
+}
+
+.card.flip .cardInner { transform: rotateY(180deg); }
+
 .front, .back {
     position: absolute;
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     backface-visibility: hidden;
-    display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
     border-radius: 10px;
-    transition: transform 0.5s;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
 }
-.front { transform: rotateY(180deg); background:#1c1c1c; }
-.back { transform: rotateY(0deg); background:#2a2a2a; }
-.card.retired { opacity:0.3; cursor:default; }
+
+.front {
+    background: #1c1c1c;
+    color: white;
+    transform: rotateY(180deg);
+}
+
+.back {
+    background: #2a2a2a;
+    color: white;
+}
+
+.retired { opacity:0.3; cursor:default; }
+
 #log { min-height: 80px; margin-top: 20px; }
+
 button { padding: 6px 12px; margin: 3px; cursor: pointer; }
+
 #rulesModal {
     display:none;
     position:fixed; top:50%; left:50%;
@@ -57,9 +78,11 @@ button { padding: 6px 12px; margin: 3px; cursor: pointer; }
     width:300px; text-align:left;
     z-index:10000;
 }
+
 #backBtn,#rulesBtn { position:fixed; padding:8px 12px; border:none; border-radius:5px; cursor:pointer; z-index:9999; }
 #backBtn{top:20px; left:20px; background:#0a84ff; color:white;}
 #rulesBtn{top:20px; right:20px; background:#ff9500; color:white;}
+
 .effect {
     position:absolute; font-size:24px; z-index:1000;
     transition: transform 0.7s linear, opacity 0.7s linear;
@@ -74,10 +97,10 @@ button { padding: 6px 12px; margin: 3px; cursor: pointer; }
 
 <div id="rulesModal">
 <h3>게임 규칙</h3>
-<p>1. 카드 풀에서 5장 선택 → 전투 시작<br>
+<p>1. 카드 풀에서 5장 선택 후 전투<br>
 2. 속성 상성: 🔥>🌿>⛰️>⚔️>🟤>💧>🔥<br>
-3. 공격력 - 방어력 × 상성 배수 → 상대 HP 감소<br>
-4. 상대 5장 모두 리타이어 → 승리!</p>
+3. 공격력-방어력×상성 배수 → 상대 HP 감소<br>
+4. 상대 5장 리타이어 시 승리</p>
 <button onclick="closeRules()">닫기</button>
 </div>
 
@@ -128,16 +151,26 @@ document.getElementById('backBtn').onclick=()=>{location.href='../';};
 document.getElementById('rulesBtn').onclick=()=>{document.getElementById('rulesModal').style.display='block';};
 function closeRules(){document.getElementById('rulesModal').style.display='none';}
 
-// 카드 풀 생성
+// 카드 풀 초기화
 function initCardPool(){
     cardPoolDiv.innerHTML='';
     allCards.forEach((c,i)=>{
         const div=document.createElement('div');
-        div.className='card flip';
-        div.innerHTML=`<div class="front"></div><div class="back">${c.name}<br>ATK:${c.atk}<br>DEF:${c.def}<br>HP:${c.hp}<br>${c.attr}</div>`;
-        div.onclick=()=>pickCard(i);
+        div.className='card';
+        div.innerHTML=`<div class="cardInner">
+            <div class="front"></div>
+            <div class="back">${c.name}<br>ATK:${c.atk}<br>DEF:${c.def}<br>HP:${c.hp}<br>${c.attr}</div>
+        </div>`;
+        div.onclick=()=>flipCard(div,i);
         cardPoolDiv.appendChild(div);
     });
+}
+
+function flipCard(cardElem,index){
+    cardElem.classList.add('flip');
+    setTimeout(()=>{
+        pickCard(index);
+    },500); // 뒤집기 애니메이션 후 선택
 }
 
 function pickCard(index){
@@ -152,9 +185,12 @@ function renderPoolAndDeck(){
     cardPoolDiv.innerHTML='';
     allCards.forEach((c,i)=>{
         const div=document.createElement('div');
-        div.className='card flip';
-        div.innerHTML=`<div class="front"></div><div class="back">${c.name}<br>ATK:${c.atk}<br>DEF:${c.def}<br>HP:${c.hp}<br>${c.attr}</div>`;
-        div.onclick=()=>pickCard(i);
+        div.className='card';
+        div.innerHTML=`<div class="cardInner">
+            <div class="front"></div>
+            <div class="back">${c.name}<br>ATK:${c.atk}<br>DEF:${c.def}<br>HP:${c.hp}<br>${c.attr}</div>
+        </div>`;
+        div.onclick=()=>flipCard(div,i);
         cardPoolDiv.appendChild(div);
     });
     renderDecks();
@@ -163,14 +199,14 @@ function renderPoolAndDeck(){
 function renderDecks(){
     playerDiv.innerHTML=''; compDiv.innerHTML='';
     playerDeck.forEach(c=>{
-        const div=document.createElement('div'); div.className='card flip';
-        div.innerHTML=`<div class="front"></div><div class="back">${c.name}<br>${c.attr}<br>HP:${c.hp}</div>`;
+        const div=document.createElement('div'); div.className='card';
+        div.innerHTML=`<div class="cardInner flip"><div class="front"></div><div class="back">${c.name}<br>${c.attr}<br>HP:${c.hp}</div></div>`;
         if(c.hp<=0) div.classList.add('retired');
         playerDiv.appendChild(div);
     });
     compDeck.forEach(c=>{
-        const div=document.createElement('div'); div.className='card flip';
-        div.innerHTML=`<div class="front"></div><div class="back">${c.name}<br>${c.attr}<br>HP:${c.hp}</div>`;
+        const div=document.createElement('div'); div.className='card';
+        div.innerHTML=`<div class="cardInner flip"><div class="front"></div><div class="back">${c.name}<br>${c.attr}<br>HP:${c.hp}</div></div>`;
         if(c.hp<=0) div.classList.add('retired');
         compDiv.appendChild(div);
     });
@@ -178,14 +214,15 @@ function renderDecks(){
 
 // 전투 시작
 function startBattle(){
-    // 컴퓨터 5장 랜덤
+    // 컴퓨터 랜덤 5장
     let pool=[...allCards];
     for(let i=0;i<5;i++){
         let idx=Math.floor(Math.random()*pool.length);
         compDeck.push({...pool.splice(idx,1)[0]});
     }
-    logDiv.textContent='전투 시작! 플레이어 카드 클릭해서 공격!';
     cardPoolDiv.style.display='none';
+    logDiv.textContent='전투 시작! 플레이어 카드 클릭해서 공격!';
+    renderDecks();
 }
 
 // 공격/속성 모션
@@ -213,7 +250,6 @@ function playTurn(cardIndex){
     const compIndex=Math.floor(Math.random()*compDeck.length);
     const compCard=compDeck[compIndex];
 
-    // 속성 상성 배율
     let dmgMultiplier=1;
     if(advantage[playerCard.attr]===compCard.attr) dmgMultiplier=1.5;
     else if(advantage[compCard.attr]===playerCard.attr) dmgMultiplier=0.5;
@@ -221,7 +257,6 @@ function playTurn(cardIndex){
     const playerDmg=Math.max(playerCard.atk-compCard.def,0)*dmgMultiplier;
     const compDmg=Math.max(compCard.atk-playerCard.def,0)*dmgMultiplier;
 
-    // 공격/방어 모션
     showEffect(playerCard.attr, playerDiv.children[cardIndex], compDiv.children[compIndex]);
     playerDiv.children[cardIndex].style.transform='translateY(-10px)';
     compDiv.children[compIndex].style.transform='translateY(10px)';
@@ -230,11 +265,11 @@ function playTurn(cardIndex){
         compDiv.children[compIndex].style.transform='';
     },300);
 
-    compCard.hp-=playerDmg; playerCard.hp-=compDmg;
+    compCard.hp-=playerDmg;
+    playerCard.hp-=compDmg;
 
     let msg=`턴 ${turn}: ${playerCard.name} vs ${compCard.name}<br>`;
-    msg+=`${playerCard.name}가 ${playerDmg.toFixed(1)} 데미지, ${compCard.name}가 ${compDmg.toFixed(1)} 데미지<br>`;
-
+    msg+=`${playerCard.name} ${playerDmg.toFixed(1)}데미지, ${compCard.name} ${compDmg.toFixed(1)}데미지<br>`;
     if(compCard.hp<=0){ compDeck.splice(compIndex,1); msg+=`${compCard.name} 리타이어!<br>`; }
     if(playerCard.hp<=0){ playerDeck.splice(cardIndex,1); msg+=`${playerCard.name} 리타이어!<br>`; }
 
@@ -251,7 +286,6 @@ function playTurn(cardIndex){
     }
 }
 
-// 플레이어 카드 클릭 -> 턴 실행
 playerDiv.onclick=(e)=>{
     const cards=Array.from(playerDiv.children);
     const idx=cards.indexOf(e.target.closest('.card'));

@@ -322,6 +322,24 @@ updateWeapon();
 updateGold();
 checkEmergencyButton();
 loadCollection();
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// 기존 강화 성공 처리 부분에서 이 함수만 호출해주면 됨
+async function saveSwordRecord(owner, weapon, level) {
+    const { error } = await supabase
+        .from("sword_rankings")
+        .insert([{ owner, weapon, level }]);
+
+    if (error) {
+        console.error("검 기록 저장 실패", error);
+    }
+}
+</script>
+
 </script>
 </body>
 </html>

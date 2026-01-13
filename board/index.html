@@ -56,82 +56,80 @@
 
 <h1>📜 자유 게시판</h1>
 
-<!-- 이름 입력칸 -->
 <input type="text" id="username" placeholder="이름을 입력하세요" style="width:200px; padding:5px; margin-bottom:10px;">
-
 <textarea id="content" placeholder="여기에 하고 싶은 말 써라..."></textarea>
 <br>
-<button onclick="addPost()">등록</button>
+<button id="addPostBtn">등록</button>
 
 <div id="posts"></div>
 
-<div class="back" onclick="goBack()">← 메인으로 돌아가기</div>
+<div class="back" id="backBtn">← 메인으로 돌아가기</div>
 
-<!-- ================== Firebase SDK ================== -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
-    // ================== Firebase 초기화 ==================
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // ================== Supabase 초기화 ==================
+    const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const postsDiv = document.getElementById('posts');
 
-    // ================== 게시판 글 불러오기 ==================
-    function loadPosts() {
-        db.collection('boardPosts').orderBy('date', 'desc').get().then(snapshot => {
-            postsDiv.innerHTML = '';
-            snapshot.forEach(doc => {
-                const post = doc.data();
-                const div = document.createElement('div');
-                div.className = 'post';
-                div.innerHTML = `
-                    <strong>${post.name}</strong> · <span class="date">${new Date(post.date).toLocaleString()}</span>
-                    <div>${post.text}</div>
-                `;
-                postsDiv.appendChild(div);
-            });
+    // ================== 게시글 불러오기 ==================
+    async function loadPosts() {
+        const { data, error } = await supabase
+            .from('board_posts')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if(error){
+            console.error(error);
+            postsDiv.innerHTML = "<p>게시글 불러오기 실패</p>";
+            return;
+        }
+
+        postsDiv.innerHTML = '';
+        data.forEach(post => {
+            const div = document.createElement('div');
+            div.className = 'post';
+            div.innerHTML = `
+                <strong>${post.name}</strong> · <span class="date">${new Date(post.created_at).toLocaleString()}</span>
+                <div>${post.text}</div>
+            `;
+            postsDiv.appendChild(div);
         });
     }
 
-    // ================== 글 등록 ==================
-    function addPost() {
+    // ================== 게시글 등록 ==================
+    document.getElementById('addPostBtn').onclick = async () => {
         const username = document.getElementById('username').value.trim();
         const content = document.getElementById('content').value.trim();
 
-        if (!username) {
-            alert('이름을 입력해주세요!');
-            return;
-        }
-        if (!content) {
-            alert('내용 좀 써라 ㅋㅋ');
+        if (!username) { alert('이름을 입력해주세요!'); return; }
+        if (!content) { alert('내용 좀 써라 ㅋㅋ'); return; }
+
+        const { error } = await supabase
+            .from('board_posts')
+            .insert([{ name: username, text: content }]);
+
+        if(error){
+            console.error(error);
+            alert("게시글 등록 실패");
             return;
         }
 
-        db.collection('boardPosts').add({
-            name: username,
-            text: content,
-            date: new Date()
-        }).then(() => {
-            document.getElementById('username').value = '';
-            document.getElementById('content').value = '';
-            loadPosts();
-        }).catch(err => {
-            console.error("Firestore 글 등록 오류:", err);
-        });
-    }
+        document.getElementById('username').value = '';
+        document.getElementById('content').value = '';
+        loadPosts();
+    };
 
-    function goBack() {
+    // ================== 메인으로 돌아가기 ==================
+    document.getElementById('backBtn').onclick = () => {
         window.location.href = "https://kwakkyungmok-del.github.io/my-web-game/";
-    }
+    };
 
-    // 최초 로드
+    // 초기 로드
     loadPosts();
 </script>
 

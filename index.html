@@ -2,21 +2,49 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>내 게임</title>
+    <title>내 게임 모음집</title>
     <style>
         body {
             margin: 0;
-            background: #111;
+            background: #0f0f0f;
             color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+            padding: 30px 0;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .card {
+            background: #1c1c1c;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+            background: #2a2a2a;
         }
     </style>
 </head>
 <body>
-    <h1>내 첫 웹게임</h1>
+
+<h1>🎮 내 게임 모음집</h1>
+
+<div class="container">
+    <div class="card" onclick="location.href='games/upgrade/'">
+        <h2>⚔️ 무기 강화 시뮬레이터</h2>
+        <p>무기를 강화하고 수식어를 모아보자</p>
+    </div>
+
+    <!-- 나중에 여기 카드 계속 추가 -->
+</div>
+
 </body>
 </html>

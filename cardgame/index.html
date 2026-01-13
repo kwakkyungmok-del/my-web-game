@@ -38,8 +38,6 @@ h1 { margin-bottom: 20px; }
     position: relative;
 }
 
-.card.flip .cardInner { transform: rotateY(180deg); }
-
 .front, .back {
     position: absolute;
     width: 100%;
@@ -57,7 +55,7 @@ h1 { margin-bottom: 20px; }
 .front { background: #1c1c1c; color: white; transform: rotateY(180deg); }
 .back { background: #2a2a2a; color: white; }
 
-.selected { border: 3px solid #0a84ff; }
+.selected { border: 3px solid #0a84ff; transform: scale(1.2);}
 .retired { opacity:0.3; cursor:default; }
 
 #log { min-height: 80px; margin-top: 20px; }
@@ -118,18 +116,18 @@ button { padding: 6px 12px; margin: 3px; cursor: pointer; }
 <script>
 const allCards=[
 {name:'기사',emoji:'🛡️',atk:8,def:5,hp:20,attr:'⚔️철'},
-{name:'마법사',emoji:'🪄',atk:6,def:3,hp:15,attr:'🔥불'},
+{name:'마법사',emoji:'🔥',atk:6,def:3,hp:15,attr:'🔥불'},
 {name:'용',emoji:'🐲',atk:10,def:7,hp:25,attr:'🔥불'},
 {name:'도적',emoji:'🧥',atk:5,def:4,hp:18,attr:'🟤노말'},
 {name:'궁수',emoji:'🏹',atk:7,def:3,hp:16,attr:'🌿풀'},
-{name:'성직자',emoji:'⛪',atk:4,def:6,hp:20,attr:'💧물'},
+{name:'성직자',emoji:'💧',atk:4,def:6,hp:20,attr:'💧물'},
 {name:'늑대',emoji:'🐺',atk:6,def:4,hp:18,attr:'🌿풀'},
 {name:'거인',emoji:'👹',atk:9,def:8,hp:30,attr:'⛰️땅'},
 {name:'좀비',emoji:'🧟',atk:5,def:3,hp:22,attr:'🟤노말'},
 {name:'고블린',emoji:'👺',atk:4,def:2,hp:15,attr:'⚔️철'},
 {name:'정령',emoji:'🧚',atk:6,def:5,hp:17,attr:'💧물'},
 {name:'해적',emoji:'🏴‍☠️',atk:7,def:4,hp:19,attr:'🔥불'},
-{name:'닌자',emoji:'🥷',atk:8,def:3,hp:16,attr:'🟤노말'},
+{name:'닌자',emoji:'🗡',atk:8,def:3,hp:16,attr:'🟤노말'},
 {name:'사제',emoji:'🙏',atk:3,def:6,hp:18,attr:'🌿풀'},
 {name:'엘프',emoji:'🧝',atk:7,def:5,hp:20,attr:'🌿풀'},
 {name:'드래곤',emoji:'🐉',atk:10,def:10,hp:35,attr:'🔥불'},
@@ -157,12 +155,10 @@ function closeRules(){document.getElementById('rulesModal').style.display='none'
 // 초기화
 function initGame(){
     playerDeck=[]; compDeck=[]; turn=1; selectedPlayer=null; selectedComp=null;
-    allCards.forEach(c=>c.hp=c.hp); // 초기 HP 유지
     restartBtn.style.display='none';
-    cardPoolDiv.style.display='flex';
-    logDiv.textContent='카드 풀에서 5장을 선택하세요.';
     renderCardPool();
     renderDecks();
+    logDiv.textContent='카드 풀에서 5장을 선택하세요.';
 }
 
 function renderCardPool(){
@@ -170,7 +166,7 @@ function renderCardPool(){
     allCards.forEach((c,i)=>{
         const div=document.createElement('div');
         div.className='card';
-        div.innerHTML=`<div class="cardInner"><div class="front"></div><div class="back">${c.emoji}</div></div>`;
+        div.innerHTML=`<div class="cardInner"><div class="front"></div><div class="back"></div></div>`;
         div.onclick=()=>pickCard(i);
         cardPoolDiv.appendChild(div);
     });
@@ -228,8 +224,8 @@ function renderDecks(){
 
 function selectPlayerCard(idx){
     selectedPlayer=idx;
-    logDiv.textContent=`${playerDeck[idx].name} 선택 완료! 상대 카드를 선택하세요.`;
     renderDecks();
+    logDiv.textContent=`${playerDeck[idx].name} 선택 완료! 상대 카드를 선택하세요.`;
 }
 
 function selectCompCard(idx){
@@ -290,7 +286,6 @@ function showEffect(emoji, fromElem, toElem){
 }
 
 restartBtn.onclick=()=>{initGame();};
-
 initGame();
 </script>
 </body>

@@ -221,9 +221,11 @@ function goBack(){
     window.location.href="index.html"; // 원하는 메인 페이지로 수정 가능
 }
 
-function log(msg){
-    document.getElementById("log").innerText = msg;
+function goBack() {
+    // 이전 히스토리가 아닌, 항상 메인 페이지로 이동
+    window.location.href = "https://example.com"; // 여기에 메인 사이트 주소 넣기
 }
+
 
 // === 최초 실행 ===
 showRandomGreeting();

@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <title>무기 강화 시뮬레이터</title>
     <style>
-        * {
-            box-sizing: border-box;
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
         }
 
         body {
-            margin: 0;
-            min-height: 100vh;
             background: radial-gradient(circle at top, #1a1a1a, #050505);
             color: white;
             font-family: Arial, sans-serif;
@@ -22,9 +23,8 @@
         .wrapper {
             display: flex;
             gap: 30px;
+            width: 90%;
             max-width: 900px;
-            width: 100%;
-            padding: 30px;
         }
 
         .panel {
@@ -44,7 +44,7 @@
 
         .side-panel {
             flex: 0.8;
-            max-height: 500px;
+            max-height: 400px;
             overflow-y: auto;
         }
 
@@ -176,12 +176,14 @@
         return extra ? `${stage} ${extra} ${baseName}` : `${stage} ${baseName}`;
     }
 
-    function upgrade() {
-        if (destroyed) {
-            log("무기가 파괴되어 더 이상 강화할 수 없습니다.");
-            return;
-        }
+    function resetWeapon() {
+        level = 0;
+        destroyed = false;
+        log("🆕 새로운 무기를 얻었습니다!");
+        updateUI();
+    }
 
+    function upgrade() {
         const chance = Math.random();
         let result = "";
 
@@ -198,8 +200,10 @@
                 result = "실패… 변화 없음.";
             }
         } else {
-            destroyed = true;
-            result = "💥 무기 파괴!";
+            result = "💥 무기 파괴! 새로운 무기를 지급합니다.";
+            log(result);
+            setTimeout(resetWeapon, 800);
+            return;
         }
 
         updateUI(result);
@@ -216,7 +220,7 @@
             addToCollection(name);
         }
 
-        log(message);
+        if (message) log(message);
     }
 
     function log(text) {

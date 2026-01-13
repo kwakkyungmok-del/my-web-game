@@ -1,99 +1,25 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>내 게임 모음집</title>
-    <meta name="description" content="곽경목의 웹게임 사이트: 강화 게임과 자유 게시판">
-    <meta name="keywords" content="곽경목, 웹게임, 강화, 자유게시판">
-    <meta name="robots" content="index, follow">
-    <style>
-        body {
-            margin: 0;
-            background: #0f0f0f;
-            color: white;
-            font-family: Arial;
-        }
-        h1 {
-            text-align: center;
-            padding: 30px 0;
-        }
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        .card {
-            background: #1c1c1c;
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .card:hover {
-            transform: scale(1.05);
-            background: #2a2a2a;
-        }
-
-        /* 자유 게시판 버튼 */
-        #boardBtn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;       
-            padding: 10px 15px;
-            font-size: 16px;
-            background: #0a84ff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        #boardBtn:hover {
-            background: #006be6;
-        }
-
-        /* 순위 버튼 디자인 변경 */
-        #showRankingBtn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 10px 15px;
-            font-size: 16px;
-            background: #f59e0b;
-            color: black;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        #showRankingBtn:hover {
-            background: #d97706;
-        }
-
-        /* 순위 모달 */
-        #rankingModal {
-            display: none;
-            position: fixed;
-            top:0; left:0;
-            width:100%; height:100%;
-            background: rgba(0,0,0,0.8);
-            justify-content: center;
-            align-items: center;
-        }
-        #rankingModal div {
-            background: #1a1a1a;
-            padding: 20px;
-            border-radius: 12px;
-            width: 300px;
-            max-width: 90%;
-            text-align: left;
-        }
-        #rankingModal h3 {
-            margin-top: 0;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>내 게임 모음집</title>
+<meta name="description" content="곽경목의 웹게임 사이트: 강화 게임과 자유 게시판">
+<meta name="keywords" content="곽경목, 웹게임, 강화, 자유게시판">
+<meta name="robots" content="index, follow">
+<style>
+body { margin: 0; background: #0f0f0f; color: white; font-family: Arial, sans-serif; }
+h1 { text-align: center; padding: 30px 0; }
+.container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 20px; }
+.card { background: #1c1c1c; border-radius: 12px; padding: 20px; cursor: pointer; transition: 0.2s; }
+.card:hover { transform: scale(1.05); background: #2a2a2a; }
+#boardBtn { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 15px; font-size: 16px; background: #0a84ff; color: white; border: none; border-radius: 5px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+#boardBtn:hover { background: #006be6; }
+#showRankingBtn { position: fixed; top: 20px; left: 20px; padding: 10px 15px; font-size: 16px; background: #6366f1; color: white; border: none; border-radius: 5px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+#showRankingBtn:hover { background: #4f46e5; }
+#rankingModal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
+#rankingModal div { background: #1a1a1a; padding: 20px; border-radius: 12px; width: 300px; max-width: 90%; text-align: left; }
+#rankingModal h3 { margin-top: 0; }
+</style>
 </head>
 <body>
 
@@ -104,7 +30,6 @@
         <h2>⚔️ 무기 강화 시뮬레이터</h2>
         <p>무기를 강화하고 수식어를 모아보자</p>
     </div>
-
     <div class="card" onclick="location.href='cardgame/'">
         <h2>🃏 카드 게임</h2>
         <p>판타지 세상의 카드 전투</p>
@@ -112,66 +37,46 @@
 </div>
 
 <button id="boardBtn">📜 자유 게시판</button>
-<button id="showRankingBtn">🔥 강화 순위</button>
+<button id="showRankingBtn">⚔️ 강화 순위</button>
 
-<!-- 순위 모달 -->
 <div id="rankingModal">
   <div>
-    <h3>Top 3 강화 순위</h3>
+    <h3>🔥 강화 순위 Top 3</h3>
     <div id="rankingList" style="margin:10px 0;"></div>
     <button id="closeRankingBtn" style="width:100%;">닫기</button>
   </div>
 </div>
 
-<!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-
+<!-- Supabase SDK 한 번만 로드 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // ================== Supabase 초기화 ==================
+if(typeof sb === 'undefined'){
     const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
     const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
 
-    // ================== 자유 게시판 이동 ==================
-    document.getElementById('boardBtn').onclick = function() { 
-        location.href = 'board/';
-    };
+/* ------------------- 게시판 이동 ------------------- */
+document.getElementById('boardBtn').onclick = () => {
+    location.href = 'board/';
+};
 
-    // ================== 순위 UI 기능 ==================
-    const rankingModal = document.getElementById("rankingModal");
-    const rankingList = document.getElementById("rankingList");
+/* ------------------- 강화 순위 모달 ------------------- */
+const rankingModal = document.getElementById("rankingModal");
+const rankingList = document.getElementById("rankingList");
 
-    document.getElementById("showRankingBtn").onclick = async () => {
-        try {
-            const { data: records, error } = await sb
-                .from('sword_rankings')
-                .select('*')
-                .order('level', { ascending: false })
-                .limit(3);
-            
-            if(error) throw error;
-            if(records.length === 0){
-                alert("등록된 검이 없습니다.");
-                return;
-            }
+document.getElementById("showRankingBtn").onclick = async () => {
+    const { data, error } = await sb.from('swordRankings').select('*').order('level', {ascending:false}).limit(3);
+    if(error){ alert("불러오기 실패:"+error.message); return; }
+    if(data.length===0){ alert("등록된 검이 없습니다."); return; }
 
-            let html = "";
-            records.forEach((rec, idx) => {
-                html += `${idx+1}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}<br>`;
-            });
+    let html = "";
+    data.forEach((rec, idx)=>{ html += `${idx+1}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}<br>`; });
+    rankingList.innerHTML = html;
+    rankingModal.style.display = "flex";
+};
 
-            rankingList.innerHTML = html;
-            rankingModal.style.display = "flex";
-        } catch(err) {
-            console.error(err);
-            alert("순위를 불러오는 중 오류가 발생했습니다.");
-        }
-    };
-
-    document.getElementById("closeRankingBtn").onclick = () => {
-        rankingModal.style.display = "none";
-    };
+document.getElementById("closeRankingBtn").onclick = () => { rankingModal.style.display = "none"; };
 </script>
-
 </body>
 </html>

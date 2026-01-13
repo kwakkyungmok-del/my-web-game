@@ -4,131 +4,120 @@
     <meta charset="UTF-8">
     <title>무기 강화 시뮬레이터</title>
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-        }
+      body {
+    margin: 0;
+    padding: 0;
+    background: #111;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        body {
-            background: radial-gradient(circle at top, #1a1a1a, #050505);
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+#backBtn {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    padding: 6px 12px;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
 
-        .wrapper {
-            display: flex;
-            gap: 30px;
-            width: 90%;
-            max-width: 900px;
-        }
+#backBtn:hover {
+    background: #555;
+}
 
-        .panel {
-            background: rgba(30, 30, 30, 0.95);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+.container {
+    width: 320px;
+    padding: 20px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
 
-        .main-panel {
-            flex: 1.2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
+#weaponName {
+    margin: 0;
+    font-size: 22px;
+}
 
-        .side-panel {
-            flex: 0.8;
-            max-height: 400px;
-            overflow-y: auto;
-        }
+#weaponLevel {
+    margin: 6px 0 12px;
+    color: #aaa;
+}
 
-        h1 {
-            margin: 0 0 10px;
-        }
+#upgradeBtn {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
-        #weaponName {
-            font-size: 22px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
+#upgradeBtn:hover {
+    background: #2563eb;
+}
 
-        #weaponLevel {
-            font-size: 18px;
-            color: #ffb74d;
-            margin-bottom: 20px;
-        }
+.log {
+    min-height: 24px;
+    margin-bottom: 12px;
+    color: #facc15;
+}
 
-        button {
-            width: 100%;
-            padding: 14px;
-            font-size: 16px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            background: linear-gradient(135deg, #ff9800, #ffc107);
-            color: #2b1b00;
-            font-weight: bold;
-            transition: 0.15s;
-        }
+.collection-box {
+    background: #0f0f0f;
+    padding: 10px;
+    border-radius: 8px;
+}
 
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
-        }
+.collection-box h3 {
+    margin: 0 0 6px 0;
+    font-size: 14px;
+    color: #aaa;
+}
 
-        button:active {
-            transform: translateY(1px);
-            box-shadow: none;
-        }
+.collection {
+    max-height: 120px;   /* ★ 여기 중요 */
+    overflow-y: auto;    /* 스크롤 생김 */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
 
-        .log {
-            margin-top: 16px;
-            min-height: 40px;
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .collection-item {
-            background: #2a2a2a;
-            margin-bottom: 8px;
-            padding: 8px 10px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .collection-title {
-            font-size: 16px;
-            margin-bottom: 10px;
-            opacity: 0.85;
-        }
-    </style>
+.collection-item {
+    background: #222;
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+</style>
 </head>
 <body>
+    <button id="backBtn" onclick="goBack()">← 뒤로가기</button>
 
-<div class="wrapper">
-
-    <div class="panel main-panel">
-        <h1>⚔️ 무기 강화</h1>
-        <div id="weaponName">-</div>
+    <div class="container">
+        <h1 id="weaponName">낡은 검</h1>
         <div id="weaponLevel">+0</div>
 
-        <button id="upgradeBtn">강화하기</button>
+        <button id="upgradeBtn" onclick="upgrade()">강화하기</button>
 
-        <div class="log" id="log"></div>
+        <div id="log" class="log">강화를 시작하세요.</div>
+
+        <div class="collection-box">
+            <h3>📖 도감</h3>
+            <div id="collection" class="collection"></div>
+        </div>
     </div>
-
-    <div class="panel side-panel">
-        <div class="collection-title">📜 도감</div>
-        <div id="collection"></div>
-    </div>
-
-</div>
+</body>
 
 <script>
     let level = 0;
@@ -205,6 +194,13 @@
             setTimeout(resetWeapon, 800);
             return;
         }
+    }
+    
+    function resetWeapon() {
+    level = 0;
+    destroyed = false;
+    updateUI("새로운 낡은 검을 획득했습니다.");
+}
 
         updateUI(result);
     }
@@ -237,6 +233,10 @@
     document.getElementById("upgradeBtn").addEventListener("click", upgrade);
 
     updateUI("강화를 시작하세요.");
+    function goBack() {
+    window.location.href = "../index.html";
+}
+
 </script>
 
 </body>

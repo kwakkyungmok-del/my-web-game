@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>무기 강화 시뮬레이터</title>
+    <style>
+        body {
+            margin: 0;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #ff9800;
+            color: black;
+            margin-top: 20px;
+        }
+        .box {
+            margin-top: 30px;
+            background: #1c1c1c;
+            padding: 20px 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<h1>⚔️ 무기 강화 시뮬레이터</h1>
+
+<div class="box">
+    <h2 id="weaponName">낡은 검</h2>
+    <p id="level">강화 단계: +0</p>
+    <button onclick="upgrade()">강화하기</button>
+</div>
+
+<script>
+    let level = 0;
+    const baseName = "낡은 검";
+
+    function upgrade() {
+        level++;
+        document.getElementById("level").innerText = "강화 단계: +" + level;
+        document.getElementById("weaponName").innerText = baseName + " +" + level;
+    }
+</script>
+
+</body>
+</html>

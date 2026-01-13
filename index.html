@@ -54,36 +54,26 @@
             background: #006be6;
         }
 
-        /* ===== 추가: 순위 모달 UI ===== */
+        /* 순위 모달 */
         #rankingModal {
+            display: none;
             position: fixed;
             top:0; left:0;
             width:100%; height:100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
+            background: rgba(0,0,0,0.8);
             justify-content: center;
             align-items: center;
-            z-index: 9999;
         }
-        #rankingModal .modalBox {
-            background:#1a1a1a;
-            padding:20px;
-            border-radius:12px;
-            width:300px;
-            text-align:center;
+        #rankingModal div {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 12px;
+            width: 300px;
+            max-width: 90%;
+            text-align: left;
         }
-        #rankingModal .closeBtn {
-            background:#333;
-            color:white;
-            padding:6px 12px;
-            border:none;
-            border-radius:6px;
-            cursor:pointer;
-            margin-top:10px;
-        }
-        #rankingList {
-            text-align:left;
-            margin-top:10px;
+        #rankingModal h3 {
+            margin-top: 0;
         }
     </style>
 </head>
@@ -92,65 +82,69 @@
 <h1>🎮 내 게임 모음집</h1>
 
 <div class="container">
-    <!-- 기존 강화 게임 카드 -->
     <div class="card" onclick="location.href='games/upgrade/'">
         <h2>⚔️ 무기 강화 시뮬레이터</h2>
         <p>무기를 강화하고 수식어를 모아보자</p>
     </div>
 
-    <!-- 클릭형 게임 카드 -->
     <div class="card" onclick="location.href='cardgame/'">
         <h2>🃏 카드 게임</h2>
         <p>판타지 세상의 카드 전투</p>
     </div>
 </div>
 
-<!-- 자유 게시판 버튼 -->
 <button id="boardBtn">📜 자유 게시판</button>
+<button id="showRankingBtn" style="position:fixed; top:20px; left:20px;">⚔️ 강화 순위</button>
 
-<!-- ===== 순위 모달 ===== -->
+<!-- 순위 모달 -->
 <div id="rankingModal">
-    <div class="modalBox">
-        <h3>🔱 강화 순위 (Top 3)</h3>
-        <div id="rankingList"></div>
-        <button class="closeBtn" id="closeRankingBtn">닫기</button>
-    </div>
+  <div>
+    <h3>🔥 강화 순위 Top 3</h3>
+    <div id="rankingList" style="margin:10px 0;"></div>
+    <button id="closeRankingBtn" style="width:100%;">닫기</button>
+  </div>
 </div>
 
-<!-- ===== 순위 버튼 추가 ===== -->
-<div style="text-align:center; margin-top:20px;">
-    <button id="showRankingBtn" style="padding:10px 15px; background:#f59e0b; color:black; border:none; border-radius:6px; cursor:pointer;">⚔️ 강화 순위 보기</button>
-</div>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-    <script src="main.js?v=2"></script>
+    // ================== Firebase 초기화 ==================
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    // 자유 게시판 이동
-    document.getElementById('boardBtn').onclick = function() {
+    // ================== 자유 게시판 이동 ==================
+    document.getElementById('boardBtn').onclick = function() { 
         location.href = 'board/';
     };
 
-    // 순위 UI 기능
+    // ================== 순위 UI 기능 ==================
     const rankingModal = document.getElementById("rankingModal");
     const rankingList = document.getElementById("rankingList");
 
     document.getElementById("showRankingBtn").onclick = () => {
-        let records = JSON.parse(localStorage.getItem("swordRankings") || "[]");
-        if(records.length === 0){
-            alert("등록된 검이 없습니다.");
-            return;
-        }
-        // 레벨 기준 내림차순, 상위 3개
-        records.sort((a,b)=>b.level - a.level);
-        const top3 = records.slice(0,3);
-
-        let html = "";
-        top3.forEach((rec, idx)=>{
-            html += `<p>${idx+1}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}</p>`;
+        // Firestore에서 top 3 가져오기
+        db.collection('swordRankings').orderBy('level','desc').limit(3).get().then(snapshot=>{
+            if(snapshot.empty){
+                alert("등록된 검이 없습니다.");
+                return;
+            }
+            let html = "";
+            let idx = 1;
+            snapshot.forEach(doc=>{
+                const rec = doc.data();
+                html += `${idx}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}<br>`;
+                idx++;
+            });
+            rankingList.innerHTML = html;
+            rankingModal.style.display = "flex";
         });
-        rankingList.innerHTML = html;
-
-        rankingModal.style.display = "flex";
     };
 
     document.getElementById("closeRankingBtn").onclick = () => {

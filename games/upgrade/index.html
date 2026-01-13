@@ -32,10 +32,10 @@ button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px;
     <div id="rate">성공 확률: 100%</div>
     <div id="gold">💰 0 G</div>
 
-    <button id="upgradeBtn" onclick="upgrade()">강화하기 (20G)</button>
-    <button id="sellBtn" onclick="sellWeapon()">무기 판매</button>
-    <button id="attendanceBtn" onclick="checkAttendance()">출석 체크</button>
-    <button id="rescueBtn" onclick="emergencyRescue()">긴급 지원 받기</button>
+    <button id="upgradeBtn">강화하기 (20G)</button>
+    <button id="sellBtn">무기 판매</button>
+    <button id="attendanceBtn">출석 체크</button>
+    <button id="rescueBtn">긴급 지원 받기</button>
 
     <div id="log">강화를 시작하세요.</div>
 
@@ -43,6 +43,7 @@ button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px;
 </div>
 
 <script>
+/* ------------------------- 데이터 ------------------------- */
 let level = 0;
 let gold = 0;
 const upgradeCost = 20;
@@ -59,8 +60,9 @@ const artisanGreetings = [
     "강화는 마음가짐부터 시작입니다."
 ];
 
-let collectionSet = new Set(JSON.parse(localStorage.getItem("collection")) || []);
+let collectionSet = new Set(JSON.parse(localStorage.getItem("collection") || "[]"));
 
+/* ------------------------- 초기화 ------------------------- */
 if(!localStorage.getItem("initGold")){
     gold = 1000;
     localStorage.setItem("initGold","true");
@@ -69,6 +71,7 @@ if(!localStorage.getItem("initGold")){
     gold = parseInt(localStorage.getItem("gold")) || 0;
 }
 
+/* ------------------------- 유틸 함수 ------------------------- */
 function showRandomGreeting(){
     const msg = artisanGreetings[Math.floor(Math.random() * artisanGreetings.length)];
     document.getElementById("artisanMsg").innerText = `재민: "${msg}"`;
@@ -94,55 +97,13 @@ function getSuccessRate(){
     return Math.max(rate,5);
 }
 
-function upgrade(){
-    if(gold<upgradeCost){
-        log("골드가 부족합니다!");
-        return;
-    }
-    gold -= upgradeCost;
-    updateGold();
-
-    const successRate = getSuccessRate();
-    const r = Math.random() * 100;
-    const box = document.querySelector('.box');
-
-    if(r <= successRate){
-        level++;
-        log("강화 성공! +1");
-        showRandomGreeting();
-
-        // 번쩍/흔들림 효과
-        box.style.transform = "scale(1.05)";
-        box.style.background = "#2a2a2a";
-        setTimeout(()=>{
-            box.style.transform="scale(1)";
-            box.style.background="#1a1a1a";
-        },100);
-
-    }else{
-        if(Math.random()<0.05){
-            log("💥 무기 파괴! 새 무기 지급");
-            resetWeapon();
-            return;
-        }else{
-            log("강화 실패… 변화 없음");
-        }
-    }
-    updateWeapon();
+function log(msg){
+    document.getElementById("log").innerText = msg;
 }
 
-function resetWeapon(){
-    level=0;
-    updateWeapon();
-}
-
-function updateWeapon(){
-    const name = getWeaponName();
-    document.getElementById("weaponName").innerText = name;
-    document.getElementById("weaponLevel").innerText = "+"+level;
-    document.getElementById("rate").innerText = `성공 확률: ${getSuccessRate()}%`;
-    document.getElementById("weaponIcon").innerText = getWeaponIcon();
-    addToCollection(name);
+function updateGold(){
+    document.getElementById("gold").innerText = `💰 ${gold} G`;
+    localStorage.setItem("gold",gold);
 }
 
 function addToCollection(name){
@@ -157,38 +118,85 @@ function addToCollection(name){
 }
 
 function loadCollection(){
-    const saved=JSON.parse(localStorage.getItem("collection"))||[];
-    const box=document.getElementById("collection");
-    box.innerHTML="";
-    saved.forEach(name=>{
-        const div=document.createElement("div");
+    const saved = JSON.parse(localStorage.getItem("collection") || "[]");
+    const box = document.getElementById("collection");
+    box.innerHTML = "";
+    saved.forEach(name => {
+        const div = document.createElement("div");
         div.className="item";
-        div.innerText=name;
+        div.innerText = name;
         box.appendChild(div);
+        collectionSet.add(name);
     });
 }
 
+/* ------------------------- 핵심 기능 ------------------------- */
+function updateWeapon(){
+    const name = getWeaponName();
+    document.getElementById("weaponName").innerText = name;
+    document.getElementById("weaponLevel").innerText = "+"+level;
+    document.getElementById("rate").innerText = `성공 확률: ${getSuccessRate()}%`;
+    document.getElementById("weaponIcon").innerText = getWeaponIcon();
+    addToCollection(name);
+}
+
+function upgrade(){
+    if(gold < upgradeCost){
+        log("골드가 부족합니다!");
+        return;
+    }
+
+    gold -= upgradeCost;
+    updateGold();
+
+    const rate = getSuccessRate();
+    const rand = Math.random()*100;
+    const box = document.querySelector('.box');
+
+    if(rand <= rate){
+        level++;
+        log("강화 성공! +1");
+        showRandomGreeting();
+
+        // 번쩍/흔들림 효과
+        box.style.transform = "scale(1.05)";
+        box.style.background = "#2a2a2a";
+        setTimeout(()=>{
+            box.style.transform = "scale(1)";
+            box.style.background = "#1a1a1a";
+        },100);
+
+    } else {
+        if(Math.random() < 0.05){
+            log("💥 무기 파괴! 새 무기 지급");
+            resetWeapon();
+        } else {
+            log("강화 실패… 변화 없음");
+        }
+    }
+    updateWeapon();
+}
+
+function resetWeapon(){
+    level = 0;
+    updateWeapon();
+}
+
 function sellWeapon(){
-    if(level===0){
+    if(level === 0){
         log("기본 무기는 판매할 수 없습니다.");
         return;
     }
-    const price=level*20;
+    const price = level*20;
     gold += price;
-    log(`+${level} 무기를 ${price}G에 판매했습니다.`);
     updateGold();
+    log(`+${level} 무기를 ${price}G에 판매했습니다.`);
     resetWeapon();
-}
-
-function updateGold(){
-    document.getElementById("gold").innerText = `💰 ${gold} G`;
-    localStorage.setItem("gold",gold);
 }
 
 function checkAttendance(){
     const today = new Date().toDateString();
-    const last = localStorage.getItem("attendance");
-    if(last===today){
+    if(localStorage.getItem("attendance") === today){
         log("오늘은 이미 출석했습니다.");
         return;
     }
@@ -199,8 +207,7 @@ function checkAttendance(){
 }
 
 function emergencyRescue(){
-    const used = localStorage.getItem("emergencyUsed");
-    if(used==="true"){
+    if(localStorage.getItem("emergencyUsed")==="true"){
         log("이미 긴급 지원을 사용했습니다.");
         return;
     }
@@ -213,26 +220,25 @@ function emergencyRescue(){
 }
 
 function checkEmergencyButton(){
-    const used = localStorage.getItem("emergencyUsed");
-    document.getElementById("rescueBtn").style.display = (used==="true")?"none":"block";
+    document.getElementById("rescueBtn").style.display = (localStorage.getItem("emergencyUsed")==="true")?"none":"block";
 }
 
-// 🔹 뒤로가기: 특정 사이트로 이동
 function goBack(){
-    window.location.href = "https://your-main-site.com"; // ← 여기 메인 사이트 URL로 바꾸기
+    window.location.href = "https://your-main-site.com"; // ← 여기에 메인 사이트 URL 넣기
 }
 
-function log(msg){
-    document.getElementById("log").innerText = msg;
-}
+/* ------------------------- 버튼 이벤트 연결 ------------------------- */
+document.getElementById("upgradeBtn").addEventListener("click", upgrade);
+document.getElementById("sellBtn").addEventListener("click", sellWeapon);
+document.getElementById("attendanceBtn").addEventListener("click", checkAttendance);
+document.getElementById("rescueBtn").addEventListener("click", emergencyRescue);
 
-// === 최초 실행 ===
+/* ------------------------- 최초 실행 ------------------------- */
 showRandomGreeting();
 updateWeapon();
 updateGold();
 checkEmergencyButton();
 loadCollection();
 </script>
-
 </body>
 </html>

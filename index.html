@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>내 게임 모음집</title>
-<meta name="description" content="곽경목의 웹게임 사이트: 강화 게임과 자유 게시판">
-<meta name="keywords" content="곽경목, 웹게임, 강화, 자유게시판">
-<meta name="robots" content="index, follow">
 <style>
 body { margin: 0; background: #0f0f0f; color: white; font-family: Arial, sans-serif; }
 h1 { text-align: center; padding: 30px 0; }
@@ -47,40 +44,40 @@ h1 { text-align: center; padding: 30px 0; }
   </div>
 </div>
 
-<!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase SDK 단 1회만 로드 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+
 <script>
-// ------------------ Supabase 초기화 ------------------
-if(typeof window.sb === 'undefined'){
-    const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
-    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Supabase 전역 객체 생성 (중복 선언 방지)
+if(!window.sb){
+    window.sb = supabase.createClient(
+        "https://lpgcfyisclihwlvlxent.supabase.co",
+        "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9"
+    );
 }
 
-// ------------------ 페이지 이동 ------------------
+// 페이지 이동
 document.getElementById('upgradeCard').addEventListener('click', ()=>{ location.href='games/upgrade/'; });
 document.getElementById('cardGameCard').addEventListener('click', ()=>{ location.href='cardgame/'; });
 document.getElementById('boardBtn').addEventListener('click', ()=>{ location.href='board/'; });
 
-// ------------------ 강화 순위 ------------------
+// 강화 순위 모달
 const rankingModal = document.getElementById("rankingModal");
 const rankingList = document.getElementById("rankingList");
 
-document.getElementById("showRankingBtn").addEventListener('click', async () => {
-    try {
-        const { data, error } = await sb.from('swordRankings').select('*').order('level',{ascending:false}).limit(3);
+document.getElementById("showRankingBtn").addEventListener('click', async ()=>{
+    try{
+        const { data, error } = await window.sb.from('swordRankings')
+            .select('*').order('level',{ascending:false}).limit(3);
         if(error) throw error;
         if(!data || data.length===0){ alert("등록된 검이 없습니다."); return; }
 
-        rankingList.innerHTML = data.map((rec,idx)=>`${idx+1}. ${rec.owner} - ${rec.weapon} Lv.${rec.level}`).join("<br>");
-        rankingModal.style.display = "flex";
-    } catch(e) {
-        alert("순위 불러오기 실패: "+e.message);
-    }
+        rankingList.innerHTML = data.map((r,i)=>`${i+1}. ${r.owner} - ${r.weapon} Lv.${r.level}`).join("<br>");
+        rankingModal.style.display="flex";
+    }catch(e){ alert("순위 불러오기 실패: "+e.message); }
 });
 
-document.getElementById("closeRankingBtn").addEventListener('click', ()=>{ rankingModal.style.display = "none"; });
-
+document.getElementById("closeRankingBtn").addEventListener('click', ()=>{ rankingModal.style.display="none"; });
 </script>
 </body>
 </html>

@@ -95,6 +95,8 @@
 </div>
 
 <script>
+    let collectionSet = new Set();
+
    let level = 0;
 let gold = 0;
 
@@ -171,12 +173,17 @@ if (!localStorage.getItem("initGold")) {
         addToCollection(name);
     }
 
-    function addToCollection(name) {
-        const div = document.createElement("div");
-        div.className = "item";
-        div.innerText = name;
-        document.getElementById("collection").appendChild(div);
-    }
+   function addToCollection(name) {
+    if (collectionSet.has(name)) return; // 이미 있으면 무시
+
+    collectionSet.add(name);
+
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerText = name;
+    document.getElementById("collection").appendChild(div);
+}
+
 
     function sellWeapon() {
         if (level === 0) {
@@ -184,7 +191,7 @@ if (!localStorage.getItem("initGold")) {
             return;
         }
 
-        const price = level * 50;
+        const price = level * 20;
         gold += price;
         log(`+${level} 무기를 ${price}G에 판매했습니다.`);
         updateGold();

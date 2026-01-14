@@ -15,6 +15,12 @@ button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px;
     <div class="box">
     ...
     <button id="devBtn" style="display:none;">개발자 전용</button>
+    <div class="devSection" style="display:none; margin-top:10px;">
+    <button id="addGoldBtn" style="background:#facc15; color:#000;">💰 골드 +1000</button>
+    <button id="toggleProtectBtn" style="background:#ef4444; color:#fff;">🛡️ 파괴 방지 OFF</button>
+    <button id="upgrade10Btn" style="background:#3b82f6; color:#fff;">⚡ 10강 한 번에</button>
+</div>
+
 </div>
 
 #gold { color:#facc15; margin:6px 0; font-weight:bold; }
@@ -281,6 +287,94 @@ showRandomGreeting(); updateWeapon(); updateGold(); checkEmergencyButton(); load
     function getWeaponImage(){
     const index = Math.min(Math.floor(level / 5), weaponImages.length - 1);
     return weaponImages[index];
+}
+let devMode = false;
+let protectWeapon = false; // 파괴 방지 상태
+
+// 키 입력 감지 (예: Ctrl+Shift+D)
+document.addEventListener("keydown", (e)=>{
+    if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "d"){
+        devMode = !devMode;
+        document.querySelector(".devSection").style.display = devMode ? "block" : "none";
+        alert(devMode ? "개발자 모드 활성화!" : "개발자 모드 비활성화!");
+    }
+});
+
+// 골드 +1000
+document.getElementById("addGoldBtn").onclick = ()=>{
+    gold += 1000;
+    updateGold();
+    log("💰 골드 1000 추가!");
+};
+
+// 파괴 방지 ON/OFF
+document.getElementById("toggleProtectBtn").onclick = ()=>{
+    protectWeapon = !protectWeapon;
+    document.getElementById("toggleProtectBtn").innerText = protectWeapon ? "🛡️ 파괴 방지 ON" : "🛡️ 파괴 방지 OFF";
+    log("🔒 파괴 방지 " + (protectWeapon ? "활성화" : "비활성화"));
+};
+
+// 10강 한번에
+document.getElementById("upgrade10Btn").onclick = ()=>{
+    for(let i=0;i<10;i++){
+        const rate = getSuccessRate();
+        const rand = Math.random()*100;
+        if(rand <= rate){
+            level++;
+        } else {
+            if(!protectWeapon && Math.random() < 0.05){ // 파괴 방지 적용
+                log("💥 무기 파괴! 새 무기 지급");
+                resetWeapon();
+                break;
+            }
+        }
+    }
+    updateWeapon();
+    log("⚡ 10강 시도 완료!");
+};
+
+// 기존 upgrade 함수 수정 (파괴 방지 반영)
+function upgrade(){
+    if(gold < upgradeCost){
+        log("골드 부족!");
+        return;
+    }
+
+    gold -= upgradeCost;
+    updateGold();
+
+    const rate = getSuccessRate();
+    const rand = Math.random() * 100;
+    const box = document.querySelector('.box');
+
+    if(rand <= rate){
+        level++;
+        log("강화 성공! +1");
+        showRandomGreeting();
+
+        box.style.transform = "scale(1.05)";
+        box.style.background = "#2a2a2a";
+        setTimeout(()=>{
+            box.style.transform = "scale(1)";
+            box.style.background = "#1a1a1a";
+        },100);
+
+        if(level >= 55){
+            box.classList.add("awakening");
+            log("💀 종말의 힘이 깨어난다...");
+            setTimeout(()=>{ box.classList.remove("awakening"); }, 600);
+        }
+
+    } else {
+        if(!protectWeapon && Math.random() < 0.05){
+            log("💥 무기 파괴! 새 무기 지급");
+            resetWeapon();
+        } else {
+            log("강화 실패… 변화 없음");
+        }
+    }
+
+    updateWeapon();
 }
 
 

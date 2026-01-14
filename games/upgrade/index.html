@@ -12,6 +12,11 @@ button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px;
 #sellBtn { background:#f59e0b; color:black; }
 #attendanceBtn { background:#16a34a; color:white; }
 #rescueBtn { background:#dc2626; color:white; }
+    <div class="box">
+    ...
+    <button id="devBtn" style="display:none;">개발자 전용</button>
+</div>
+
 #gold { color:#facc15; margin:6px 0; font-weight:bold; }
 #rate { color:#60a5fa; margin:4px 0; font-size:13px; }
 #log { min-height:24px; margin:10px 0; color:#facc15; }
@@ -207,6 +212,22 @@ showRandomGreeting(); updateWeapon(); updateGold(); checkEmergencyButton(); load
         padding: 8px 10px;
     }
 }
+    /* ================== 개발자 모드 토글 ================== */
+if (!localStorage.getItem("isDeveloper")) {
+    document.addEventListener("keydown", e => {
+        if (e.ctrlKey && e.shiftKey && e.key === "D") {
+            localStorage.setItem("isDeveloper", "true");
+            alert("개발자 모드 활성화");
+            location.reload();
+        }
+    });
+}
+
+/* 개발자 전용 버튼 보이기 */
+if (localStorage.getItem("isDeveloper") === "true") {
+    document.getElementById("devBtn").style.display = "block";
+}
+
 
 </script>
 </body>

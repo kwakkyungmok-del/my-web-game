@@ -141,7 +141,7 @@ function initPool(){
         let cardEl=document.createElement('div');
         cardEl.className='card';
         cardEl.textContent='❓';
-        cardEl.onclick=()=>selectPoolCard(i,cardEl);
+        card.onclick = () => selectCard(card);
         cardPoolDiv.appendChild(cardEl);
     });
     log('카드 5장 선택하세요');
@@ -278,6 +278,17 @@ initPool();
 
     card.classList.add("selected");
     selectedCards.push(card);
+}
+let selectedCards = [];
+
+function selectCard(card) {
+    if (card.classList.contains("selected")) return;
+    if (selectedCards.length >= 5) return;
+
+    card.classList.add("selected");
+    selectedCards.push(card);
+
+    card.style.pointerEvents = "none"; // 다시 클릭 못 하게
 }
 
  

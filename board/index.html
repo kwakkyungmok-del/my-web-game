@@ -56,33 +56,36 @@
             color: #0a84ff;
             cursor: pointer;
         }
-        /* 기본: PC 기준 */
-.container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-}
-
-/* 모바일 대응 */
+/* 모바일 대응 (게시판용) */
 @media (max-width: 768px) {
     h1 {
         font-size: 22px;
     }
 
-    .container {
-        grid-template-columns: 1fr;
-        padding: 10px;
-    }
-
-    .card {
-        padding: 15px;
-    }
-
-    #boardBtn, #showRankingBtn {
+    input, textarea {
         font-size: 14px;
-        padding: 8px 10px;
+        padding: 8px;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+
+    .post {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .date {
+        font-size: 11px;
+    }
+
+    .back {
+        font-size: 14px;
     }
 }
+
 
     </style>
 </head>

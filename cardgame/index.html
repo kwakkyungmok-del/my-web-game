@@ -152,7 +152,8 @@ function selectPoolCard(idx, el){
     if(selectingCount >= 5) return;
 
    let selected = cardPool[idx];
-playerDeck.push({ ...selected }); // ★ 여기
+playerDeck.push({ ...selected });
+
 
     // 이미 플레이어 덱에 있으면 선택 무시
     if(playerDeck.includes(selected)) return;
@@ -170,11 +171,13 @@ playerDeck.push({ ...selected }); // ★ 여기
 function startBattle(){
     cardPoolDiv.style.display='none';
     document.getElementById('battlePhase').style.display='block';
+compDeck = []; 
+
     // 컴퓨터 덱 5장 선택
     let compPool=allCards.filter(c=>!playerDeck.includes(c));
     while(compDeck.length<5){
         let r=Math.floor(Math.random()*compPool.length);
-        compDeck.push({ ...compPool.splice(r,1)[0] }); // ★ 여기
+       compDeck.push({ ...compPool.splice(r,1)[0] });
 
     }
     renderBattleDecks();

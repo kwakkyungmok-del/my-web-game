@@ -1,20 +1,79 @@
-<!-- 게시판 head -->
+<!DOCTYPE html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <title>자유 게시판</title>
+
+    <!-- favicon 경로 추가 -->
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+
     <style>
-        /* 기존 스타일 그대로 유지 */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #111;
+            color: #eee;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 10px;
+            resize: none;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #0a84ff;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #006be6;
+        }
+        .post {
+            background: #1b1b1b;
+            border: 1px solid #333;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .date {
+            font-size: 12px;
+            color: #888;
+        }
+        .back {
+            margin-top: 20px;
+            display: inline-block;
+            color: #0a84ff;
+            cursor: pointer;
+        }
     </style>
 </head>
+<body>
 
-<!-- body ... 기존 HTML 그대로 -->
+<h1>📜 자유 게시판</h1>
+
+<!-- 게시판 입력/게시글 영역 그대로 유지 -->
+<textarea id="content" placeholder="여기에 하고 싶은 말 써라..."></textarea>
+<br>
+<button id="addPostBtn">등록</button>
+
+<div id="posts"></div>
+
+<div class="back" id="backBtn">← 메인으로 돌아가기</div>
 
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
-    // ================== Supabase 초기화 ==================
+    // ================== Supabase 중복 선언 방지 ==================
     if(!window.sb){
         const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
         const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
@@ -50,15 +109,13 @@
 
     // ================== 게시글 등록 ==================
     document.getElementById('addPostBtn').onclick = async () => {
-        const username = document.getElementById('username').value.trim();
         const content = document.getElementById('content').value.trim();
 
-        if (!username) { alert('이름을 입력해주세요!'); return; }
         if (!content) { alert('내용 좀 써라 ㅋㅋ'); return; }
 
         const { error } = await sb
             .from('board_posts')
-            .insert([{ name: username, text: content }]);
+            .insert([{ text: content }]);
 
         if(error){
             console.error(error);
@@ -66,7 +123,6 @@
             return;
         }
 
-        document.getElementById('username').value = '';
         document.getElementById('content').value = '';
         loadPosts();
     };
@@ -79,3 +135,6 @@
     // 초기 로드
     loadPosts();
 </script>
+
+</body>
+</html>

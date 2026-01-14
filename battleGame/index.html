@@ -1,1 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>전투 게임</title>
+<style>
+body { margin:0; font-family:Arial, sans-serif; background:#111; color:#fff; display:flex; flex-direction:column; align-items:center; padding:20px; }
+h1 { text-align:center; }
+input, select, button { padding:8px; margin:5px 0; border-radius:6px; border:none; font-size:16px; }
+button { cursor:pointer; background:#0a84ff; color:#fff; transition:0.2s; }
+button:hover { background:#006be6; }
+.container { max-width:400px; width:100%; }
+.card { background:#1c1c1c; padding:20px; border-radius:12px; margin-bottom:20px; }
+#battleModal, #leaderboardModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000; }
+.modalBox { background:#1a1a1a; padding:20px; border-radius:12px; max-width:90%; width:320px; max-height:80%; overflow-y:auto; text-align:left; }
+.modalBox button { width:100%; margin-top:10px; background:#6366f1; color:#fff; }
+</style>
+</head>
+<body>
 
+<h1>⚔️ 전투 게임</h1>
+
+<div class="container">
+  <div class="card">
+    <h2>캐릭터 선택 / 생성</h2>
+    <label>캐릭터 이름: <input type="text" id="charName" placeholder="캐릭터 이름"></label><br>
+    <label>직업 선택:
+      <select id="jobSelect">
+        <option value="warrior">전사</option>
+        <option value="mage">마법사</option>
+        <option value="archer">궁수</option>
+        <option value="rogue">도적</option>
+        <option value="paladin">성기사</option>
+      </select>
+    </label><br>
+    <label>무기 비밀번호: <input type="password" id="weaponPassword" placeholder="무기 비밀번호"></label><br>
+    <button id="loadCharBtn">캐릭터 불러오기</button>
+  </div>
+
+  <div class="card">
+    <h2>배틀 시작</h2>
+    <label>상대 캐릭터 ID 입력: <input type="text" id="enemyId" placeholder="상대 캐릭터 id"></label><br>
+    <button id="startBattleBtn">배틀!</button>
+  </div>
+
+  <div class="card">
+    <h2>리더보드</h2>
+    <button id="showLeaderboardBtn">승리 수 순위 보기</button>
+  </div>
+</div>
+
+<!-- 배틀 결과 모달 -->
+<div id="battleModal">
+  <div class="modalBox">
+    <h3>🏆 배틀 결과</h3>
+    <div id="battleText"></div>
+    <button id="closeBattleBtn">닫기</button>
+  </div>
+</div>
+
+<!-- 리더보드 모달 -->
+<div id="leaderboardModal">
+  <div class="modalBox">
+    <h3>🥇 리더보드</h3>
+    <div id="leaderboardList"></div>
+    <button id="closeLeaderboardBtn">닫기</button>
+  </div>
+</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// 직업 기본 공격력/방어력
+const JOB_STATS = {
+  warrior: { atk: 5, def: 3 },
+  mage: { atk: 6, def: 2 },
+  archer: { atk: 4, def: 4 },
+  rogue: { atk: 5, def: 2 },
+  paladin: { atk: 3, def: 5 }
+};
+
+let currentChar = null; // 내 캐릭터
+
+// 캐릭터 불러오기
+document.getElementById('loadCharBtn').onclick = async () => {
+  const name = document.getElementById('charName').value.trim();
+  const job = document.getElementById('jobSelect').value;
+  const password = document.getElementById('weaponPassword').value.trim();
+  if(!name || !password) { alert("이름과 무기 비밀번호를 입력하세요."); return; }
+
+  try{
+    // 무기 조회
+    let { data: weapons, error:wErr } = await sb.from('weapons')
+      .select('*')
+      .eq('password', password)
+      .limit(1);
+    if(wErr) throw wErr;
+    if(!weapons || weapons.length===0){ alert("비밀번호에 맞는 무기가 없습니다."); return; }
+    const weapon = weapons[0];
+
+    // 캐릭터 조회 (이미 존재하면 불러오기)
+    let { data: chars, error:cErr } = await sb.from('characters')
+      .select('*')
+      .eq('name', name)
+      .eq('owner', weapon.owner)
+      .limit(1);
+    if(cErr) throw cErr;
+
+    if(chars && chars.length>0){
+      currentChar = chars[0];
+      alert(`캐릭터 불러오기 완료! 무기: ${weapon.name}, 공격력/방어력 적용됨`);
+    }else{
+      // 새 캐릭터 생성
+      const baseAtk = JOB_STATS[job].atk + weapon.level;
+      const baseDef = JOB_STATS[job].def;
+      const { data:newChar, error:nErr } = await sb.from('characters').insert([{
+        owner: weapon.owner,
+        name: name,
+        base_atk: baseAtk,
+        base_def: baseDef,
+        weapon_id: weapon.id
+      }]).select().single();
+      if(nErr) throw nErr;
+      currentChar = newChar;
+      alert(`캐릭터 생성 완료! 무기: ${weapon.name}, 공격력:${baseAtk}, 방어력:${baseDef}`);
+    }
+  } catch(e){ alert("캐릭터 로딩 실패: "+e.message); }
+};
+
+// 배틀 시작
+document.getElementById('startBattleBtn').onclick = async () => {
+  if(!currentChar){ alert("먼저 캐릭터를 불러오세요."); return; }
+  const enemyId = document.getElementById('enemyId').value.trim();
+  if(!enemyId){ alert("상대 캐릭터 id 입력하세요."); return; }
+
+  try{
+    let { data: enemyArr, error:eErr } = await sb.from('characters').select('*').eq('id', enemyId).limit(1);
+    if(eErr) throw eErr;
+    if(!enemyArr || enemyArr.length===0){ alert("상대 캐릭터가 없습니다."); return; }
+    const enemy = enemyArr[0];
+
+    // 무기 조회
+    let { data: myWeaponArr } = await sb.from('weapons').select('*').eq('id', currentChar.weapon_id).limit(1);
+    let { data: enemyWeaponArr } = await sb.from('weapons').select('*').eq('id', enemy.weapon_id).limit(1);
+    const myWeapon = myWeaponArr[0];
+    const enemyWeapon = enemyWeaponArr[0];
+
+    const myAtk = currentChar.base_atk + myWeapon.level;
+    const myDef = currentChar.base_def;
+    const enemyAtk = enemy.base_atk + enemyWeapon.level;
+    const enemyDef = enemy.base_def;
+
+    const myScore = myAtk - enemyDef;
+    const enemyScore = enemyAtk - myDef;
+
+    let winner = null;
+    if(myScore > enemyScore) winner = currentChar;
+    else if(myScore < enemyScore) winner = enemy;
+    else winner = Math.random()<0.5 ? currentChar : enemy;
+
+    // 랜덤 배틀 문구
+    const events = [
+      "강력한 일격!",
+      "치명적인 마법 공격!",
+      "화살이 빗나갔지만 재빠른 공격!",
+      "방패로 막아냈다!",
+      "치명타 발생!"
+    ];
+    const battleText = `
+${currentChar.name}(${myWeapon.name}) 공격:${myAtk} 방어:${myDef}
+vs
+${enemy.name}(${enemyWeapon.name}) 공격:${enemyAtk} 방어:${enemyDef}
+-------------------
+결과: ${winner.name} 승리!
+-------------------
+전투 이벤트:
+- ${events[Math.floor(Math.random()*events.length)]}
+- ${events[Math.floor(Math.random()*events.length)]}
+- ${events[Math.floor(Math.random()*events.length)]}
+    `;
+    document.getElementById('battleText').innerHTML = battleText;
+    document.getElementById('battleModal').style.display='flex';
+
+    // battles 테이블 기록
+    const { data:battleRec, error:bErr } = await sb.from('battles').insert([{
+      player1_id: currentChar.id,
+      player2_id: enemy.id,
+      winner_id: winner.id
+    }]);
+    if(bErr) console.log("배틀 기록 오류:",bErr);
+
+    // leaderboard 갱신
+    const { data: lbData, error:lbErr } = await sb.from('leaderboard').select('*').eq('player_id', winner.id).limit(1);
+    if(lbErr) console.log(lbErr);
+    if(lbData && lbData.length>0){
+      await sb.from('leaderboard').update({ wins: lbData[0].wins + 1 }).eq('player_id', winner.id);
+    }else{
+      await sb.from('leaderboard').insert([{ player_id: winner.id, wins:1 }]);
+    }
+
+  } catch(e){ alert("배틀 실패: "+e.message); }
+};
+
+document.getElementById('closeBattleBtn').onclick = () => { document.getElementById('battleModal').style.display='none'; };
+
+// 리더보드 보기
+document.getElementById('showLeaderboardBtn').onclick = async () => {
+  try{
+    let { data: lb, error:lbErr } = await sb.from('leaderboard').select('player_id, wins, characters(name)').order('wins',{ascending:false}).limit(10).leftJoin('characters','characters.id','player_id');
+    if(lbErr) throw lbErr;
+    if(!lb || lb.length===0){ alert("승리 기록이 없습니다."); return; }
+    let html = "";
+    lb.forEach((rec,idx)=>{ html += `${idx+1}. ${rec.characters?.name || rec.player_id} - ${rec.wins}승<br>`; });
+    document.getElementById('leaderboardList').innerHTML = html;
+    document.getElementById('leaderboardModal').style.display='flex';
+  }catch(e){ alert("리더보드 불러오기 실패:"+e.message); }
+};
+document.getElementById('closeLeaderboardBtn').onclick = ()=>{ document.getElementById('leaderboardModal').style.display='none'; };
+</script>
+
+</body>
+</html>

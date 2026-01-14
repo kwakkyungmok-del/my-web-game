@@ -3,19 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <title>⚔️ 전투 게임</title>
+
 <style>
-body { background:#0f0f0f; color:#fff; font-family:Arial; margin:0; padding:20px; }
-h1 { text-align:center; margin-bottom:20px; }
-.container { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
-.card { background:#1c1c1c; border-radius:12px; padding:20px; width:250px; cursor:pointer; transition:0.2s; }
-.card:hover { transform:scale(1.05); background:#2a2a2a; }
-button { padding:8px 12px; border:none; border-radius:6px; cursor:pointer; margin-top:10px; background:#0a84ff; color:#fff; }
-button:hover { background:#006be6; }
-select, input { width:100%; margin-top:5px; padding:6px; border-radius:6px; border:none; }
-.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-         background:rgba(0,0,0,0.8); justify-content:center; align-items:center; }
-.modalContent { background:#1a1a1a; padding:20px; border-radius:12px; width:90%; max-width:400px; max-height:80%; overflow-y:auto; }
-.modalContent h3 { margin-top:0; }
+body { margin:0; background:#0f0f0f; color:#fff; font-family:Arial, sans-serif; }
+h1 { text-align:center; padding:20px 0; }
+.container { max-width:500px; margin:0 auto; padding:20px; display:flex; flex-direction:column; gap:15px; }
+label { display:block; margin:10px 0 5px; }
+select, input { width:100%; padding:8px; border-radius:6px; border:none; font-size:16px; }
+button { padding:10px; border:none; border-radius:6px; cursor:pointer; font-size:16px; margin-top:10px; background:#6366f1; color:#fff; }
+button:hover { background:#4f46e5; }
+#battleResult { margin-top:15px; line-height:1.4; background:#222; padding:10px; border-radius:8px; min-height:50px; }
 </style>
 </head>
 <body>
@@ -23,55 +20,34 @@ select, input { width:100%; margin-top:5px; padding:6px; border-radius:6px; bord
 <h1>⚔️ 전투 게임</h1>
 
 <div class="container">
-  <!-- 캐릭터 생성 -->
-  <div class="card">
-    <h3>캐릭터 생성</h3>
-    <label>캐릭터 이름</label>
-    <input type="text" id="charName">
-    <label>직업 선택</label>
-    <select id="jobSelect">
-      <option value="warrior">전사</option>
-      <option value="archer">궁수</option>
-      <option value="mage">마법사</option>
-      <option value="thief">도적</option>
-      <option value="paladin">성기사</option>
-    </select>
-    <button id="createCharBtn">생성</button>
-  </div>
-
-  <!-- 캐릭터 목록 -->
-  <div class="card">
-    <h3>캐릭터 목록</h3>
-    <div id="charList"></div>
-    <button id="refreshCharBtn">갱신</button>
-  </div>
-
-  <!-- 전투 -->
-  <div class="card">
-    <h3>전투 시작</h3>
-    <label>플레이어 1 (내 캐릭터)</label>
+  <div>
+    <label>내 캐릭터:</label>
     <select id="player1Select"></select>
-    <label>플레이어 2</label>
-    <select id="player2Select"></select>
-    <label>무기 비밀번호</label>
-    <input type="text" id="weaponPassword">
-    <button id="battleBtn">전투!</button>
   </div>
 
-  <!-- 리더보드 -->
-  <div class="card">
-    <h3>리더보드</h3>
-    <div id="leaderboardList"></div>
-    <button id="refreshLBBtn">갱신</button>
+  <div>
+    <label>상대 캐릭터:</label>
+    <select id="player2Select"></select>
   </div>
+
+  <div>
+    <label>무기 비밀번호:</label>
+    <input type="text" id="weaponPassword" placeholder="무기 비밀번호 입력">
+  </div>
+
+  <button id="startBattleBtn">전투 시작</button>
+  <button id="leaderboardBtn">🏆 리더보드 보기</button>
+  <button onclick="window.location.href='https://kwakkyungmok-del.github.io/my-web-game/'">돌아가기</button>
+
+  <div id="battleResult"></div>
 </div>
 
-<!-- 결과 모달 -->
-<div class="modal" id="battleModal">
-  <div class="modalContent">
-    <h3>전투 결과</h3>
-    <div id="battleResult"></div>
-    <button id="closeModalBtn">닫기</button>
+<!-- 리더보드 모달 -->
+<div id="leaderboardModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center;">
+  <div style="background:#1a1a1a; padding:20px; border-radius:12px; width:320px; max-height:80%; overflow-y:auto; box-shadow:0 2px 8px rgba(0,0,0,0.5);">
+    <h3>🏆 리더보드</h3>
+    <div id="leaderboardList" style="margin:10px 0;"></div>
+    <button id="closeLeaderboardBtn">닫기</button>
   </div>
 </div>
 
@@ -81,116 +57,95 @@ const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// 캐릭터 생성
-const jobStats = {
-  warrior:{atk:5, def:3}, archer:{atk:4, def:2},
-  mage:{atk:3, def:1}, thief:{atk:2, def:2}, paladin:{atk:3, def:4}
-};
+const player1Select = document.getElementById("player1Select");
+const player2Select = document.getElementById("player2Select");
+const weaponInput = document.getElementById("weaponPassword");
+const battleResult = document.getElementById("battleResult");
 
-document.getElementById('createCharBtn').onclick = async ()=>{
-  const name = document.getElementById('charName').value.trim();
-  const job = document.getElementById('jobSelect').value;
-  if(!name){ alert("이름 입력"); return; }
-  const { data, error } = await sb.from('characters').insert({
-    owner: "me",
-    name: name,
-    base_atk: jobStats[job].atk,
-    base_def: jobStats[job].def
-  });
-  if(error) { alert("생성 실패:"+error.message); return; }
-  alert("생성 완료"); refreshCharList();
-};
-
-// 캐릭터 목록 갱신
-async function refreshCharList(){
-  const { data, error } = await sb.from('characters').select('id,name').order('created_at',{ascending:true});
-  if(error){ console.error(error); return; }
-  const charList = document.getElementById('charList');
-  charList.innerHTML = "";
-  const player1Select = document.getElementById('player1Select');
-  const player2Select = document.getElementById('player2Select');
-  player1Select.innerHTML=""; player2Select.innerHTML="";
-  data.forEach(c=>{
-    charList.innerHTML += `${c.id} - ${c.name}<br>`;
-    const opt1 = document.createElement("option"); opt1.value=c.id; opt1.text=c.name;
-    player1Select.appendChild(opt1);
-    const opt2 = document.createElement("option"); opt2.value=c.id; opt2.text=c.name;
-    player2Select.appendChild(opt2);
-  });
+async function loadCharacters(){
+  try{
+    const { data, error } = await sb.from('characters').select('id,name').order('created_at',{ascending:true});
+    if(error) throw error;
+    player1Select.innerHTML="";
+    player2Select.innerHTML="";
+    data.forEach(c => {
+      const opt1 = document.createElement('option'); opt1.value=c.id; opt1.text=c.name; player1Select.appendChild(opt1);
+      const opt2 = document.createElement('option'); opt2.value=c.id; opt2.text=c.name; player2Select.appendChild(opt2);
+    });
+  }catch(e){ alert("캐릭터 불러오기 실패:"+e.message); }
 }
-document.getElementById('refreshCharBtn').onclick = refreshCharList;
-refreshCharList();
 
-// 전투 로직
-document.getElementById('battleBtn').onclick = async ()=>{
-  const p1Id = document.getElementById('player1Select').value;
-  const p2Id = document.getElementById('player2Select').value;
-  const pwd = document.getElementById('weaponPassword').value.trim();
-  if(!p1Id || !p2Id || !pwd){ alert("모두 선택"); return; }
-  if(p1Id===p2Id){ alert("다른 캐릭터 선택"); return; }
+async function startBattle(){
+  battleResult.innerHTML="";
+  const player1Id = player1Select.value;
+  const player2Id = player2Select.value;
+  const password = weaponInput.value.trim();
+  if(!player1Id || !player2Id || !password){ battleResult.innerHTML="모든 항목을 입력하세요."; return; }
 
-  // 무기 찾기
-  const { data: weapons, error: wError } = await sb.from('weapons').select('*').eq('password',pwd);
-  if(wError || !weapons.length){ alert("무기 없음"); return; }
-  const weapon = weapons[0];
+  try{
+    // 무기 찾기
+    const { data:weaponData } = await sb.from('weapons').select('id,name,level').eq('password',password).limit(1);
+    if(!weaponData || weaponData.length===0){ battleResult.innerHTML="무기를 찾을 수 없습니다."; return; }
+    const weapon = weaponData[0];
 
-  // 캐릭터 정보 가져오기
-  const { data: chars, error: cError } = await sb.from('characters').select('*').in('id',[p1Id,p2Id]);
-  if(cError || chars.length<2){ alert("캐릭터 조회 실패"); return; }
-  const p1 = chars.find(c=>c.id===p1Id);
-  const p2 = chars.find(c=>c.id===p2Id);
+    // 캐릭터 정보
+    const { data:char1Data } = await sb.from('characters').select('id,name,base_atk,base_def').eq('id',player1Id).limit(1);
+    const player1 = char1Data[0];
+    const { data:char2Data } = await sb.from('characters').select('id,name,base_atk,base_def').eq('id',player2Id).limit(1);
+    const player2 = char2Data[0];
 
-  // 공격력/방어력 계산
-  const p1Atk = p1.base_atk + weapon.level;
-  const p2Atk = p2.base_atk;
-  const p1Def = p1.base_def;
-  const p2Def = p2.base_def;
+    // 전투 계산
+    const atk1 = player1.base_atk + weapon.level;
+    const score1 = atk1 - player2.base_def;
+    const score2 = player2.base_atk - player1.base_def;
+    const winner = score1>=score2 ? player1 : player2;
 
-  let winnerId, battleText;
-  if(p1Atk-p2Def > p2Atk-p1Def){ winnerId=p1.id; }
-  else if(p1Atk-p2Def < p2Atk-p1Def){ winnerId=p2.id; }
-  else { winnerId=Math.random()<0.5?p1.id:p2.id; }
+    // battles 기록
+    await sb.from('battles').insert({ player1_id:player1.id, player2_id:player2.id, winner_id:winner.id });
 
-  // 랜덤 배틀 문구
-  const phrases = [
-    "강력한 일격!", "치명적인 회피!", "마법 폭발!", "치열한 방어!", "예상치 못한 반격!"
-  ];
-  battleText = `${p1.name} vs ${p2.name}<br>결과: ${chars.find(c=>c.id===winnerId).name} 승리!<br>`;
-  battleText += phrases.sort(()=>0.5-Math.random()).slice(0,3).join(" / ");
+    // leaderboard 업데이트
+    const { data:lbData } = await sb.from('leaderboard').select('id,wins').eq('player_id',winner.id).limit(1);
+    if(lbData && lbData.length>0){
+      await sb.from('leaderboard').update({ wins: lbData[0].wins+1 }).eq('player_id',winner.id);
+    }else{
+      await sb.from('leaderboard').insert({ player_id:winner.id, wins:1 });
+    }
 
-  // battles 테이블 기록
-  await sb.from('battles').insert({player1_id:p1.id, player2_id:p2.id, winner_id:winnerId});
+    const msgs = [
+      `${player1.name}이 ${player2.name}에게 강력한 공격!`,
+      `${player2.name}이 방어했지만 피해 발생!`,
+      `${player1.name}의 스킬 발동!`,
+      `${player2.name}이 반격!`
+    ];
+    const battleMsg = msgs.sort(()=>0.5-Math.random()).slice(0,3).join('<br>');
 
-  // leaderboard 업데이트
-  const { data: lbData } = await sb.from('leaderboard').select('player_id,wins').eq('player_id',winnerId);
-  if(lbData.length) await sb.from('leaderboard').update({wins:lbData[0].wins+1}).eq('player_id',winnerId);
-  else await sb.from('leaderboard').insert({player_id:winnerId, wins:1});
+    battleResult.innerHTML = `<strong>승리:</strong> ${winner.name}<br>${battleMsg}`;
 
-  // 모달 표시
-  document.getElementById('battleResult').innerHTML = battleText;
-  document.getElementById('battleModal').style.display = "flex";
-
-  refreshLeaderboard();
-};
-
-// 리더보드 갱신
-async function refreshLeaderboard(){
-  const { data: lbData, error: lbError } = await sb.from('leaderboard').select('player_id,wins');
-  if(lbError){ console.error(lbError); return; }
-  const ids = lbData.map(e=>e.player_id);
-  const { data: charData } = await sb.from('characters').select('id,name').in('id',ids);
-  const html = lbData.map(e=>{
-    const c = charData.find(ch=>ch.id===e.player_id);
-    return c ? `${c.name} - 승리 ${e.wins}회` : `${e.player_id} - 승리 ${e.wins}회`;
-  }).join('<br>');
-  document.getElementById('leaderboardList').innerHTML = html;
+  }catch(e){ battleResult.innerHTML="배틀 실패:"+e.message; }
 }
-document.getElementById('refreshLBBtn').onclick = refreshLeaderboard;
-refreshLeaderboard();
 
-// 모달 닫기
-document.getElementById('closeModalBtn').onclick = ()=>{ document.getElementById('battleModal').style.display='none'; }
+// 리더보드
+const leaderboardModal = document.getElementById("leaderboardModal");
+const leaderboardList = document.getElementById("leaderboardList");
+document.getElementById("leaderboardBtn").onclick = async ()=>{
+  leaderboardModal.style.display="flex";
+  leaderboardList.innerHTML="불러오는 중...";
+  try{
+    const { data } = await sb.from('leaderboard')
+      .select('player_id,wins,characters(name)')
+      .order('wins',{ascending:false});
+    let html="";
+    data.forEach(r => {
+      html += `${r.characters?.name || "알 수 없음"} - ${r.wins}승<br>`;
+    });
+    leaderboardList.innerHTML=html;
+  }catch(e){ leaderboardList.innerHTML="불러오기 실패:"+e.message; }
+};
+document.getElementById("closeLeaderboardBtn").onclick = ()=>{ leaderboardModal.style.display="none"; };
 
+loadCharacters();
+document.getElementById("startBattleBtn").onclick=startBattle;
 </script>
+
 </body>
 </html>

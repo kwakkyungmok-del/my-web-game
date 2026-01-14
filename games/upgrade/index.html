@@ -32,6 +32,20 @@ button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px;
 }
 #recordModal .saveBtn { background:#f59e0b; color:black; }
 #recordModal .closeBtn { background:#333; color:white; }
+    .awakening {
+    animation: shake 0.2s infinite;
+    box-shadow: 0 0 20px 5px red;
+    background: linear-gradient(135deg, #3a0000, #000);
+}
+
+@keyframes shake {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(2px, -2px); }
+    50% { transform: translate(-2px, 2px); }
+    75% { transform: translate(2px, 2px); }
+    100% { transform: translate(0, 0); }
+}
+
 </style>
 </head>
 <body>
@@ -133,7 +147,12 @@ function loadCollection(){ const saved=JSON.parse(localStorage.getItem("collecti
 /* ------------------------- 핵심 기능 ------------------------- */
 function updateWeapon(){ const name=getWeaponName(); document.getElementById("weaponName").innerText=name; document.getElementById("weaponLevel").innerText="+"+level; document.getElementById("rate").innerText=`성공 확률: ${getSuccessRate()}%`; document.getElementById("weaponIcon").innerText=getWeaponIcon(); addToCollection(name); }
 
-function upgrade(){ if(gold<upgradeCost){ log("골드 부족!"); return; } gold-=upgradeCost; updateGold(); const rate=getSuccessRate(); const rand=Math.random()*100; const box=document.querySelector('.box'); if(rand<=rate){ level++; log("강화 성공! +1"); showRandomGreeting(); box.style.transform="scale(1.05)"; box.style.background="#2a2a2a"; setTimeout(()=>{ box.style.transform="scale(1)"; box.style.background="#1a1a1a"; },100); } else { if(Math.random()<0.05){ log("💥 무기 파괴! 새 무기 지급"); resetWeapon(); } else { log("강화 실패… 변화 없음"); } } updateWeapon(); }
+function upgrade(){ if(gold<upgradeCost){ log("골드 부족!"); return; } gold-=upgradeCost; updateGold(); const rate=getSuccessRate(); const rand=Math.random()*100; const box=document.querySelector('.box'); if(rand<=rate){ level++; log("강화 성공! +1"); showRandomGreeting(); box.style.transform="scale(1.05)"; box.style.background="#2a2a2a"; setTimeout(()=>{ box.style.transform="scale(1)"; box.style.background="#1a1a1a"; },100); }if(level >= 55){
+    box.classList.add("awakening");
+    log("💀 종말의 힘이 깨어난다...");
+    setTimeout(()=>{ box.classList.remove("awakening"); }, 600);
+}
+ else { if(Math.random()<0.05){ log("💥 무기 파괴! 새 무기 지급"); resetWeapon(); } else { log("강화 실패… 변화 없음"); } } updateWeapon(); }
 function resetWeapon(){ level=0; updateWeapon(); }
 function sellWeapon(){ if(level===0){ log("기본 무기 판매 불가"); return; } const price=level*30; gold+=price; updateGold(); log(`+${level} 무기를 ${price}G에 판매`); resetWeapon(); }
 function checkAttendance(){ const today=new Date().toDateString(); if(localStorage.getItem("attendance")===today){ log("오늘 출석 완료"); return; } gold+=100; updateGold(); localStorage.setItem("attendance",today); log("출석 보상 100G 지급"); }

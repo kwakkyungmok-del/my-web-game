@@ -151,7 +151,8 @@ function initPool(){
 function selectPoolCard(idx, el){
     if(selectingCount >= 5) return;
 
-    let selected = cardPool[idx];
+   let selected = cardPool[idx];
+playerDeck.push({ ...selected }); // ★ 여기
 
     // 이미 플레이어 덱에 있으면 선택 무시
     if(playerDeck.includes(selected)) return;
@@ -173,7 +174,8 @@ function startBattle(){
     let compPool=allCards.filter(c=>!playerDeck.includes(c));
     while(compDeck.length<5){
         let r=Math.floor(Math.random()*compPool.length);
-        compDeck.push(compPool.splice(r,1)[0]);
+        compDeck.push({ ...compPool.splice(r,1)[0] }); // ★ 여기
+
     }
     renderBattleDecks();
     log('전투 시작! 공격할 내 카드를 선택하세요.');

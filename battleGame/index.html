@@ -3,16 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <title>⚔️ 전투 게임</title>
-
 <style>
-body { margin:0; background:#0f0f0f; color:#fff; font-family:Arial, sans-serif; }
-h1 { text-align:center; padding:20px 0; }
-.container { max-width:500px; margin:0 auto; padding:20px; display:flex; flex-direction:column; gap:15px; }
-label { display:block; margin:10px 0 5px; }
-select, input { width:100%; padding:8px; border-radius:6px; border:none; font-size:16px; }
-button { padding:10px; border:none; border-radius:6px; cursor:pointer; font-size:16px; margin-top:10px; background:#6366f1; color:#fff; }
-button:hover { background:#4f46e5; }
-#battleResult { margin-top:15px; line-height:1.4; background:#222; padding:10px; border-radius:8px; min-height:50px; }
+    body { margin:0; background:#0f0f0f; color:#fff; font-family:Arial,sans-serif; }
+    h1 { text-align:center; padding:20px 0; }
+    .container { display:flex; flex-direction:column; align-items:center; gap:15px; padding:20px; }
+    select, input, button { padding:8px; border-radius:6px; border:none; font-size:14px; margin:5px; }
+    button { cursor:pointer; background:#1c1c1c; color:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:0.2s; }
+    button:hover { background:#2a2a2a; }
+    #battleResultModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+        background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000; }
+    #battleResultModal div { background:#1a1a1a; padding:20px; border-radius:12px; width:320px; text-align:center; }
+    #leaderboardModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+        background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000; }
+    #leaderboardModal div { background:#1a1a1a; padding:20px; border-radius:12px; width:320px; text-align:left; max-height:80%; overflow-y:auto; }
 </style>
 </head>
 <body>
@@ -20,35 +23,35 @@ button:hover { background:#4f46e5; }
 <h1>⚔️ 전투 게임</h1>
 
 <div class="container">
-  <div>
-    <label>내 캐릭터:</label>
-    <select id="player1Select"></select>
-  </div>
+    <label>캐릭터 선택</label>
+    <select id="characterSelect"></select>
 
-  <div>
-    <label>상대 캐릭터:</label>
-    <select id="player2Select"></select>
-  </div>
+    <label>무기 비밀번호 입력</label>
+    <input type="text" id="weaponPassword" placeholder="무기 비밀번호">
 
-  <div>
-    <label>무기 비밀번호:</label>
-    <input type="text" id="weaponPassword" placeholder="무기 비밀번호 입력">
-  </div>
+    <label>상대 캐릭터 선택</label>
+    <select id="opponentSelect"></select>
 
-  <button id="startBattleBtn">전투 시작</button>
-  <button id="leaderboardBtn">🏆 리더보드 보기</button>
-  <button onclick="window.location.href='https://kwakkyungmok-del.github.io/my-web-game/'">돌아가기</button>
-
-  <div id="battleResult"></div>
+    <button id="loadWeaponBtn">무기 불러오기</button>
+    <button id="battleBtn">전투 시작</button>
+    <button id="leaderboardBtn">리더보드 보기</button>
+    <button id="goBackBtn">🏠 돌아가기</button>
 </div>
 
-<!-- 리더보드 모달 -->
-<div id="leaderboardModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center;">
-  <div style="background:#1a1a1a; padding:20px; border-radius:12px; width:320px; max-height:80%; overflow-y:auto; box-shadow:0 2px 8px rgba(0,0,0,0.5);">
-    <h3>🏆 리더보드</h3>
-    <div id="leaderboardList" style="margin:10px 0;"></div>
-    <button id="closeLeaderboardBtn">닫기</button>
-  </div>
+<div id="battleResultModal">
+    <div>
+        <h3>⚔️ 전투 결과</h3>
+        <div id="battleResultText" style="margin:10px 0;"></div>
+        <button id="closeBattleModal">닫기</button>
+    </div>
+</div>
+
+<div id="leaderboardModal">
+    <div>
+        <h3>🏆 리더보드</h3>
+        <div id="leaderboardList" style="margin:10px 0;"></div>
+        <button id="closeLeaderboard">닫기</button>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -57,94 +60,132 @@ const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const player1Select = document.getElementById("player1Select");
-const player2Select = document.getElementById("player2Select");
-const weaponInput = document.getElementById("weaponPassword");
-const battleResult = document.getElementById("battleResult");
+let currentCharacter = null;
 
+// 캐릭터 목록 불러오기
 async function loadCharacters(){
-  try{
     const { data, error } = await sb.from('characters').select('id,name').order('created_at',{ascending:true});
-    if(error) throw error;
-    player1Select.innerHTML="";
-    player2Select.innerHTML="";
+    if(error){ console.error(error); alert("캐릭터 불러오기 실패"); return; }
+    const select = document.getElementById('characterSelect');
+    select.innerHTML = '';
     data.forEach(c => {
-      const opt1 = document.createElement('option'); opt1.value=c.id; opt1.text=c.name; player1Select.appendChild(opt1);
-      const opt2 = document.createElement('option'); opt2.value=c.id; opt2.text=c.name; player2Select.appendChild(opt2);
+        const option = document.createElement('option');
+        option.value = c.id;
+        option.textContent = c.name;
+        select.appendChild(option);
     });
-  }catch(e){ alert("캐릭터 불러오기 실패:"+e.message); }
+    // 상대 선택에도 동일 목록
+    const oppSelect = document.getElementById('opponentSelect');
+    oppSelect.innerHTML = '';
+    data.forEach(c=>{
+        const option = document.createElement('option');
+        option.value = c.id;
+        option.textContent = c.name;
+        oppSelect.appendChild(option);
+    });
 }
+loadCharacters();
 
-async function startBattle(){
-  battleResult.innerHTML="";
-  const player1Id = player1Select.value;
-  const player2Id = player2Select.value;
-  const password = weaponInput.value.trim();
-  if(!player1Id || !player2Id || !password){ battleResult.innerHTML="모든 항목을 입력하세요."; return; }
-
-  try{
-    // 무기 찾기
-    const { data:weaponData } = await sb.from('weapons').select('id,name,level').eq('password',password).limit(1);
-    if(!weaponData || weaponData.length===0){ battleResult.innerHTML="무기를 찾을 수 없습니다."; return; }
-    const weapon = weaponData[0];
+// 무기 불러오기 버튼
+document.getElementById('loadWeaponBtn').onclick = async () => {
+    const charId = document.getElementById('characterSelect').value;
+    const password = document.getElementById('weaponPassword').value.trim();
+    if(!charId || !password){ alert("캐릭터와 무기 비밀번호를 입력하세요"); return; }
 
     // 캐릭터 정보
-    const { data:char1Data } = await sb.from('characters').select('id,name,base_atk,base_def').eq('id',player1Id).limit(1);
-    const player1 = char1Data[0];
-    const { data:char2Data } = await sb.from('characters').select('id,name,base_atk,base_def').eq('id',player2Id).limit(1);
-    const player2 = char2Data[0];
+    const { data: charData, error: charErr } = await sb.from('characters').select('*').eq('id', charId).single();
+    if(charErr || !charData){ alert("캐릭터 정보 불러오기 실패"); return; }
 
-    // 전투 계산
-    const atk1 = player1.base_atk + weapon.level;
-    const score1 = atk1 - player2.base_def;
-    const score2 = player2.base_atk - player1.base_def;
-    const winner = score1>=score2 ? player1 : player2;
+    // 무기 정보
+    const { data: weaponData, error: weaponErr } = await sb.from('weapons').select('*').eq('password', password).single();
+    if(weaponErr || !weaponData){ alert("무기 정보 불러오기 실패"); return; }
+
+    // 캐릭터에 무기 적용
+    const { error: updateErr } = await sb.from('characters').update({
+        weapon_id: weaponData.id,
+        base_atk: charData.base_atk // 공격력은 레벨 합산은 배틀 시 계산
+    }).eq('id', charId);
+    if(updateErr){ alert("캐릭터 업데이트 실패"); return; }
+
+    currentCharacter = { ...charData, weapon: weaponData };
+    alert(`${charData.name}에 ${weaponData.name} (Lv.${weaponData.level}) 적용 완료`);
+};
+
+// 전투 시작 버튼
+document.getElementById('battleBtn').onclick = async () => {
+    if(!currentCharacter){ alert("먼저 무기를 불러오세요"); return; }
+    const player1 = currentCharacter;
+    const player2Id = document.getElementById('opponentSelect').value;
+    if(player2Id === player1.id){ alert("상대 캐릭터를 다른 캐릭터로 선택하세요"); return; }
+
+    const { data: oppData, error: oppErr } = await sb.from('characters').select('*,weapon_id(*)').eq('id', player2Id).single();
+    if(oppErr || !oppData){ alert("상대 캐릭터 불러오기 실패"); return; }
+
+    // 공격력 계산
+    const player1Atk = player1.base_atk + (player1.weapon?.level || 0);
+    const player2Atk = oppData.base_atk + (oppData.weapon_id?.level || 0);
+
+    let winner = null;
+    if(player1Atk >= player2Atk) winner = player1.id;
+    else winner = player2Id;
+
+    // 랜덤 전투 문구
+    const phrases = [
+        "강력한 일격! 🗡️",
+        "방어를 뚫고 공격! 💥",
+        "치명타 발생! ⚡",
+        "신속한 반격! 🔄",
+        "화려한 스킬 사용! ✨"
+    ];
+    const battleText = `
+${player1.name} 공격력: ${player1Atk}  
+${oppData.name} 공격력: ${player2Atk}  
+${winner === player1.id ? player1.name : oppData.name} 승리!  
+${phrases[Math.floor(Math.random()*phrases.length)]}
+    `;
+    document.getElementById('battleResultText').textContent = battleText;
+    document.getElementById('battleResultModal').style.display = 'flex';
 
     // battles 기록
-    await sb.from('battles').insert({ player1_id:player1.id, player2_id:player2.id, winner_id:winner.id });
-
-    // leaderboard 업데이트
-    const { data:lbData } = await sb.from('leaderboard').select('id,wins').eq('player_id',winner.id).limit(1);
-    if(lbData && lbData.length>0){
-      await sb.from('leaderboard').update({ wins: lbData[0].wins+1 }).eq('player_id',winner.id);
-    }else{
-      await sb.from('leaderboard').insert({ player_id:winner.id, wins:1 });
-    }
-
-    const msgs = [
-      `${player1.name}이 ${player2.name}에게 강력한 공격!`,
-      `${player2.name}이 방어했지만 피해 발생!`,
-      `${player1.name}의 스킬 발동!`,
-      `${player2.name}이 반격!`
-    ];
-    const battleMsg = msgs.sort(()=>0.5-Math.random()).slice(0,3).join('<br>');
-
-    battleResult.innerHTML = `<strong>승리:</strong> ${winner.name}<br>${battleMsg}`;
-
-  }catch(e){ battleResult.innerHTML="배틀 실패:"+e.message; }
-}
-
-// 리더보드
-const leaderboardModal = document.getElementById("leaderboardModal");
-const leaderboardList = document.getElementById("leaderboardList");
-document.getElementById("leaderboardBtn").onclick = async ()=>{
-  leaderboardModal.style.display="flex";
-  leaderboardList.innerHTML="불러오는 중...";
-  try{
-    const { data } = await sb.from('leaderboard')
-      .select('player_id,wins,characters(name)')
-      .order('wins',{ascending:false});
-    let html="";
-    data.forEach(r => {
-      html += `${r.characters?.name || "알 수 없음"} - ${r.wins}승<br>`;
+    await sb.from('battles').insert({
+        player1_id: player1.id,
+        player2_id: player2Id,
+        winner_id: winner
     });
-    leaderboardList.innerHTML=html;
-  }catch(e){ leaderboardList.innerHTML="불러오기 실패:"+e.message; }
-};
-document.getElementById("closeLeaderboardBtn").onclick = ()=>{ leaderboardModal.style.display="none"; };
 
-loadCharacters();
-document.getElementById("startBattleBtn").onclick=startBattle;
+    // leaderboard 갱신
+    const { data: lbData } = await sb.from('leaderboard').select('*').eq('character_id', winner).single();
+    if(lbData){
+        await sb.from('leaderboard').update({ wins: lbData.wins + 1 }).eq('character_id', winner);
+    } else {
+        await sb.from('leaderboard').insert({ character_id: winner, wins: 1 });
+    }
+};
+
+// 모달 닫기
+document.getElementById('closeBattleModal').onclick = () => {
+    document.getElementById('battleResultModal').style.display = 'none';
+};
+
+// 리더보드 보기
+document.getElementById('leaderboardBtn').onclick = async () => {
+    const { data, error } = await sb.from('leaderboard').select('character_id,wins,characters(name)').order('wins',{ascending:false});
+    if(error){ alert("리더보드 불러오기 실패"); return; }
+    const listDiv = document.getElementById('leaderboardList');
+    listDiv.innerHTML = '';
+    data.forEach((row,idx)=>{
+        listDiv.innerHTML += `${idx+1}. ${row.characters?.name || '알수없음'} - 승리 ${row.wins}<br>`;
+    });
+    document.getElementById('leaderboardModal').style.display = 'flex';
+});
+document.getElementById('closeLeaderboard').onclick = () => {
+    document.getElementById('leaderboardModal').style.display = 'none';
+};
+
+// 돌아가기
+document.getElementById('goBackBtn').onclick = () => {
+    location.href = 'https://kwakkyungmok-del.github.io/my-web-game/';
+};
 </script>
 
 </body>

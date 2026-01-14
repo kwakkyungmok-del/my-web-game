@@ -273,6 +273,13 @@ function restartGame(){
 }
 
 initPool();
+ function selectCard(card) {
+    if (card.classList.contains("selected")) return; // 이미 선택된 카드면 무시
+
+    card.classList.add("selected");
+    selectedCards.push(card);
+}
+
  
 </script>
 </body>

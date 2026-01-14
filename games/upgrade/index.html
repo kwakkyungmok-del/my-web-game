@@ -143,6 +143,17 @@ function getWeaponName(){
     if (level < 5) return `${stage} 검`;
     return `${stage} ${extra} 검`;
 }
+const weaponImages = [
+    "https://cdn-icons-png.freepik.com/512/2936/2936546.png",  // 레벨 0~4
+    "https://cdn-icons-png.freepik.com/512/9480/9480430.png",   // 5~9
+    "https://cdn-icons-png.freepik.com/512/14963/14963311.png", // 10~14
+    "https://cdn-icons-png.freepik.com/512/2464/2464414.png",   // 15~19
+    "https://cdn-icons-png.freepik.com/512/2464/2464414.png",   // 20~24
+    "https://cdn-icons-png.freepik.com/512/1737/1737022.png",   // 25~29
+    "https://cdn-icons-png.freepik.com/512/5888/5888890.png",   // 30~34
+    "https://cdn-icons-png.freepik.com/512/10612/10612592.png", // 35~39
+    "https://cdn-icons-png.freepik.com/512/8194/8194926.png"    // 40+
+];
 
 function getWeaponIcon(){ if(level<5) return "🗡️"; if(level<10) return "⚔️"; if(level<15) return "🔥⚔️"; return "👑⚔️"; }
 function getSuccessRate(){ if(level===0) return 100; let rate = 100; for(let i=1;i<=level;i++){ if(i<=5) rate-=(6-i); else rate-=2; } return Math.max(rate,5); }
@@ -266,6 +277,11 @@ showRandomGreeting(); updateWeapon(); updateGold(); checkEmergencyButton(); load
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
 }
+    function getWeaponImage(){
+    const index = Math.min(Math.floor(level / 5), weaponImages.length - 1);
+    return weaponImages[index];
+}
+
 
 </script>
 </body>

@@ -163,7 +163,8 @@ function addToCollection(name){ if(collectionSet.has(name)) return; collectionSe
 function loadCollection(){ const saved=JSON.parse(localStorage.getItem("collection")||"[]"); const box=document.getElementById("collection"); box.innerHTML=""; saved.forEach(n=>{ const div=document.createElement("div"); div.className="item"; div.innerText=n; box.appendChild(div); collectionSet.add(n); }); }
 
 /* ------------------------- 핵심 기능 ------------------------- */
-function updateWeapon(){ const name=getWeaponName(); document.getElementById("weaponName").innerText=name; document.getElementById("weaponLevel").innerText="+"+level; document.getElementById("rate").innerText=`성공 확률: ${getSuccessRate()}%`; document.getElementById("weaponIcon").innerText=getWeaponIcon(); addToCollection(name); }
+function updateWeapon(){ const name=getWeaponName(); document.getElementById("weaponName").innerText=name; document.getElementById("weaponLevel").innerText="+"+level; document.getElementById("rate").innerText=`성공 확률: ${getSuccessRate()}%`;document.getElementById("weaponIcon").innerHTML = `<img src="${getWeaponImage()}" alt="${getWeaponName()}" style="width:48px; height:48px;">`;
+ addToCollection(name); }
 
 function upgrade(){
     if(gold < upgradeCost){

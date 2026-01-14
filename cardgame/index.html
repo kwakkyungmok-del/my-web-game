@@ -156,7 +156,8 @@ function selectPoolCard(idx, el){
     // 이미 선택한 카드면 무시
     if(playerDeck.includes(selected)) return;
 
-    playerDeck.push(selected);
+  playerDeck.push({ ...selected });
+
 
     el.style.background = '#0af';
     el.textContent = selected.emoji + ' ' + selected.name;
@@ -178,6 +179,7 @@ compDeck = [];
     while(compDeck.length<5){
         let r=Math.floor(Math.random()*compPool.length);
        compDeck.push({ ...compPool.splice(r,1)[0] });
+
 
     }
     renderBattleDecks();
@@ -263,14 +265,17 @@ function restartGame(){
     cardPoolDiv.style.display='flex';
     cardPoolDiv.innerHTML='';
     document.getElementById('battlePhase').style.display='none';
+
     playerDeck=[];
     compDeck=[];
     selectingCount=0;
     playerSelect=null;
     targetSelect=null;
     playerTurn=true;
+
     initPool();
 }
+
 
 initPool();
 

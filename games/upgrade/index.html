@@ -455,6 +455,46 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 });
+document.addEventListener("DOMContentLoaded", () => {
+    const addGoldBtn = document.getElementById("addGoldBtn");
+    if(addGoldBtn){
+        addGoldBtn.onclick = () => {
+            gold += 1000;
+            updateGold();
+            log("💰 골드 1000 추가!");
+        };
+    }
+
+    const toggleProtectBtn = document.getElementById("toggleProtectBtn");
+    if(toggleProtectBtn){
+        toggleProtectBtn.onclick = () => {
+            protectWeapon = !protectWeapon;
+            toggleProtectBtn.innerText = protectWeapon ? "🛡️ 파괴 방지 ON" : "🛡️ 파괴 방지 OFF";
+            log("🔒 파괴 방지 " + (protectWeapon ? "활성화" : "비활성화"));
+        };
+    }
+
+    const upgrade10Btn = document.getElementById("upgrade10Btn");
+    if(upgrade10Btn){
+        upgrade10Btn.onclick = () => {
+            for(let i=0;i<10;i++){
+                const rate = getSuccessRate();
+                const rand = Math.random()*100;
+                if(rand <= rate){
+                    level++;
+                } else {
+                    if(!protectWeapon && Math.random() < 0.05){
+                        log("💥 무기 파괴! 새 무기 지급");
+                        resetWeapon();
+                        break;
+                    }
+                }
+            }
+            updateWeapon();
+            log("⚡ 10강 시도 완료!");
+        };
+    }
+});
 
 
 </script>

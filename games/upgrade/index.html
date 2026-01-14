@@ -293,7 +293,7 @@ let protectWeapon = false; // 파괴 방지 상태
 
 // 키 입력 감지 (예: Ctrl+Shift+D)
 document.addEventListener("keydown", (e)=>{
-    if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "d"){
+    if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "e"){
         devMode = !devMode;
         document.querySelector(".devSection").style.display = devMode ? "block" : "none";
         alert(devMode ? "개발자 모드 활성화!" : "개발자 모드 비활성화!");

@@ -135,6 +135,34 @@ document.getElementById("backBtn").addEventListener("click",goBack);
 
 /* ------------------------- 최초 실행 ------------------------- */
 showRandomGreeting(); updateWeapon(); updateGold(); checkEmergencyButton(); loadCollection();
+    /* 기본: PC 기준 */
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 22px;
+    }
+
+    .container {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    #boardBtn, #showRankingBtn {
+        font-size: 14px;
+        padding: 8px 10px;
+    }
+}
+
 </script>
 </body>
 </html>

@@ -18,6 +18,14 @@
         #boardBtn:hover { background:#006be6; }
         #showRankingBtn { top:20px; left:20px; background:#6366f1; color:#fff; }
         #showRankingBtn:hover { background:#4f46e5; }
+        #noticeBtn { 
+    top:20px; 
+    left:150px; /* 강화 순위 버튼 오른쪽으로 약간 띄움 */
+    background:#f59e0b; 
+    color:#000; 
+}
+#noticeBtn:hover { background:#d97706; }
+
         #rankingModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; }
         #rankingModal div { background:#1a1a1a; padding:20px; border-radius:12px; width:300px; max-width:90%; text-align:left; }
         #rankingModal h3 { margin-top:0; }
@@ -45,6 +53,8 @@
 
 <button id="boardBtn">📜 자유 게시판</button>
 <button id="showRankingBtn">⚔️ 강화 순위</button>
+<button id="noticeBtn">📢 공지사항</button>
+
 
 <div id="rankingModal">
   <div>
@@ -53,6 +63,15 @@
     <button id="closeRankingBtn" style="width:100%;">닫기</button>
   </div>
 </div>
+    
+    <div id="noticeModal">
+  <div>
+    <h3>📢 공지사항</h3>
+    <div id="noticeText" style="margin:10px 0; line-height:1.4;"></div>
+    <button id="closeNoticeBtn" style="width:100%;">닫기</button>
+  </div>
+</div>
+
 
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -94,6 +113,29 @@
     document.getElementById("closeRankingBtn").onclick = ()=>{ rankingModal.style.display="none"; };
     /* 기본: PC 기준 */
 
+const noticeModal = document.getElementById("noticeModal");
+const noticeText = document.getElementById("noticeText");
+
+// 여기에 공지 글 입력
+const noticeContent = `
+업데이트 완료
+내용 : 
+무기 강화 시 뜨는 이미지 변경(5레벨마다 바뀜)
+무기 판매 시 판매가 변경
+1레벨 -> 20G
+2레벨 -> 30G
+`;
+
+// 버튼 클릭 시 모달 표시
+document.getElementById("noticeBtn").onclick = () => {
+    noticeText.innerHTML = noticeContent;
+    noticeModal.style.display = "flex";
+}
+
+// 닫기 버튼
+document.getElementById("closeNoticeBtn").onclick = () => {
+    noticeModal.style.display = "none";
+}
 
 
 </script>

@@ -390,49 +390,24 @@ function upgrade(){
 
     updateWeapon();
 }
-// 모달 열기/닫기
-document.getElementById("registerWeaponBtn").onclick = () => {
-    document.getElementById("weaponModal").style.display = "flex";
-};
-document.getElementById("closeWeaponModalBtn").onclick = () => {
-    document.getElementById("weaponModal").style.display = "none";
-};
-
-// 무기 등록 확인 버튼
-document.getElementById("confirmWeaponBtn").onclick = async () => {
-    const password = document.getElementById("weaponPassword").value.trim();
-    if (!password) { alert("비밀번호를 입력하세요."); return; }
-
-    const weaponName = getWeaponName(); // 기존 함수 사용
-    const weaponLevel = level;
-
-    try {
-        const { data, error } = await sb.from('weapons').insert([{
-            owner: 'guest', // 로그인 없으므로 일단 'guest'로 고정
-            name: weaponName,
-            level: weaponLevel,
-            password: password
-        }]);
-        if (error) throw error;
-
-        alert("무기 등록 완료!");
-        document.getElementById("weaponModal").style.display = "none";
-        document.getElementById("weaponPassword").value = "";
-    } catch (err) {
-        alert("등록 실패: " + err.message);
-    }
-};
-
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("registerWeaponBtn").onclick = () => {
-        document.getElementById("weaponModal").style.display = "flex";
+    const registerBtn = document.getElementById("registerWeaponBtn");
+    const weaponModal = document.getElementById("weaponModal");
+    const closeBtn = document.getElementById("closeWeaponModalBtn");
+    const confirmBtn = document.getElementById("confirmWeaponBtn");
+
+    // 모달 열기
+    registerBtn.onclick = () => {
+        weaponModal.style.display = "flex";
     };
 
-    document.getElementById("closeWeaponModalBtn").onclick = () => {
-        document.getElementById("weaponModal").style.display = "none";
+    // 모달 닫기
+    closeBtn.onclick = () => {
+        weaponModal.style.display = "none";
     };
 
-    document.getElementById("confirmWeaponBtn").onclick = async () => {
+    // 무기 등록 확인
+    confirmBtn.onclick = async () => {
         const password = document.getElementById("weaponPassword").value.trim();
         if (!password) { alert("비밀번호를 입력하세요."); return; }
 
@@ -449,13 +424,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (error) throw error;
 
             alert("무기 등록 완료!");
-            document.getElementById("weaponModal").style.display = "none";
+            weaponModal.style.display = "none";
             document.getElementById("weaponPassword").value = "";
         } catch (err) {
             alert("등록 실패: " + err.message);
         }
     };
 });
+
 document.addEventListener("DOMContentLoaded", () => {
     const addGoldBtn = document.getElementById("addGoldBtn");
     if(addGoldBtn){

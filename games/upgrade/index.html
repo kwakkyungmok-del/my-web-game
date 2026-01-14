@@ -422,6 +422,39 @@ document.getElementById("confirmWeaponBtn").onclick = async () => {
     }
 };
 
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("registerWeaponBtn").onclick = () => {
+        document.getElementById("weaponModal").style.display = "flex";
+    };
+
+    document.getElementById("closeWeaponModalBtn").onclick = () => {
+        document.getElementById("weaponModal").style.display = "none";
+    };
+
+    document.getElementById("confirmWeaponBtn").onclick = async () => {
+        const password = document.getElementById("weaponPassword").value.trim();
+        if (!password) { alert("비밀번호를 입력하세요."); return; }
+
+        const weaponName = getWeaponName();
+        const weaponLevel = level;
+
+        try {
+            const { data, error } = await sb.from('weapons').insert([{
+                owner: 'guest',
+                name: weaponName,
+                level: weaponLevel,
+                password: password
+            }]);
+            if (error) throw error;
+
+            alert("무기 등록 완료!");
+            document.getElementById("weaponModal").style.display = "none";
+            document.getElementById("weaponPassword").value = "";
+        } catch (err) {
+            alert("등록 실패: " + err.message);
+        }
+    };
+});
 
 </script>
 </body>

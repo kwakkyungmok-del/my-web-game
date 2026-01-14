@@ -121,6 +121,10 @@
         overflow-y: auto !important;
     }
 }
+/* 배틀 카드 좌우 반전용 */
+.card.reverse {
+    transform: scaleX(-1);
+}
 
     </style>
 </head>
@@ -158,6 +162,10 @@
     <div id="noticeText" style="line-height:1.4;"></div>
     <button id="closeNoticeBtn">닫기</button>
   </div>
+</div>
+<div class="card reverse" onclick="location.href='battle/'">
+    <h2>⚔️ 배틀 게임</h2>
+    <p>전투를 즐기고 승리하라!</p>
 </div>
 
 

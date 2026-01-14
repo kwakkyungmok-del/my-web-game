@@ -68,6 +68,47 @@
     border-radius:6px; 
     cursor:pointer;
 }
+/* 모바일 대응 */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 22px;
+        padding: 20px 0;
+    }
+
+    .container {
+        grid-template-columns: 1fr; /* 1열로 */
+        gap: 15px;
+        padding: 10px;
+    }
+
+    .card {
+        padding: 15px;
+        font-size: 14px;
+    }
+
+    #boardBtn, #showRankingBtn, #noticeBtn {
+        font-size: 14px;
+        padding: 8px 10px;
+    }
+
+    #boardBtn { top: 10px; right: 10px; }
+    #showRankingBtn { top: 10px; left: 10px; }
+    #noticeBtn { top: 10px; left: auto; right: 10px; } /* 겹치지 않게 우측으로 이동 */
+
+    /* 랭킹 모달 */
+    #rankingModal div {
+        width: 90%;
+        max-width: 300px;
+        padding: 15px;
+    }
+
+    /* 공지 모달 */
+    #noticeModal .modalBox {
+        width: 90%;
+        max-width: 320px;
+        padding: 15px;
+    }
+}
 
     </style>
 </head>

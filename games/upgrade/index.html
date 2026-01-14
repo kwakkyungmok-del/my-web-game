@@ -198,7 +198,29 @@ function upgrade(){
 }
 
 function resetWeapon(){ level=0; updateWeapon(); }
-function sellWeapon(){ if(level===0){ log("기본 무기 판매 불가"); return; } const price=level*30; gold+=price; updateGold(); log(`+${level} 무기를 ${price}G에 판매`); resetWeapon(); }
+function sellWeapon(){
+    if(level === 0){
+        log("기본 무기 판매 불가");
+        return;
+    }
+
+    let price = 0;
+
+    if(level === 1) price = 20;
+    else if(level === 2) price = 30;
+    else if(level === 3) price = 40;
+    else if(level === 4) price = 50;
+    else {
+        // 5레벨 이상부터는: 50 + (레벨-4)*50
+        price = 50 + (level - 4) * 50;
+    }
+
+    gold += price;
+    updateGold();
+    log(`+${level} 무기를 ${price}G에 판매`);
+    resetWeapon();
+}
+
 function checkAttendance(){
     const today = getTodayKey();
 
@@ -210,7 +232,7 @@ function checkAttendance(){
     gold += 1000;
     updateGold();
     localStorage.setItem("attendance", today);
-    log("출석 보상 100G 지급");
+    log("출석 보상 1000G 지급");
 }
 
 function emergencyRescue(){ if(localStorage.getItem("emergencyUsed")==="true"){ log("이미 사용됨"); return; } gold+=500; updateGold(); localStorage.setItem("emergencyUsed","true"); log("🆘 긴급 지원 500G 지급"); checkEmergencyButton(); }

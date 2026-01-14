@@ -56,18 +56,7 @@ button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px;
     75% { transform: translate(2px, 2px); }
     100% { transform: translate(0, 0); }
 }
-    <!-- 좌하단 무기 등록 버튼 -->
-<button id="registerWeaponBtn" style="position:fixed; bottom:10px; left:10px; padding:8px 12px; background:#10b981; color:white; border:none; border-radius:6px; cursor:pointer;">무기 등록</button>
-
-<!-- 무기 등록 모달 -->
-<div id="weaponModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:9999;">
-    <div style="background:#1a1a1a; padding:20px; border-radius:12px; width:280px; text-align:center;">
-        <h3>무기 등록</h3>
-        <input type="text" id="weaponPassword" placeholder="비밀번호 입력" style="width:100%; padding:8px; margin:10px 0; border:none; border-radius:6px;">
-        <button id="confirmWeaponBtn" style="background:#f59e0b; color:black; width:100%; padding:8px; border:none; border-radius:6px; margin-bottom:6px;">확인</button>
-        <button id="closeWeaponModalBtn" style="background:#333; color:white; width:100%; padding:8px; border:none; border-radius:6px;">취소</button>
-    </div>
-</div>
+    
 
 
 </style>
@@ -105,7 +94,18 @@ button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px;
         <button class="closeBtn" id="closeRecordBtn">닫기</button>
     </div>
 </div>
+<!-- 좌하단 무기 등록 버튼 -->
+<button id="registerWeaponBtn" style="position:fixed; bottom:10px; left:10px; padding:8px 12px; background:#10b981; color:white; border:none; border-radius:6px; cursor:pointer;">무기 등록</button>
 
+<!-- 무기 등록 모달 -->
+<div id="weaponModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:9999;">
+    <div style="background:#1a1a1a; padding:20px; border-radius:12px; width:280px; text-align:center;">
+        <h3>무기 등록</h3>
+        <input type="text" id="weaponPassword" placeholder="비밀번호 입력" style="width:100%; padding:8px; margin:10px 0; border:none; border-radius:6px;">
+        <button id="confirmWeaponBtn" style="background:#f59e0b; color:black; width:100%; padding:8px; border:none; border-radius:6px; margin-bottom:6px;">확인</button>
+        <button id="closeWeaponModalBtn" style="background:#333; color:white; width:100%; padding:8px; border:none; border-radius:6px;">취소</button>
+    </div>
+</div>
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 

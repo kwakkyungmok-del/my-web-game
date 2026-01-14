@@ -154,15 +154,65 @@ function loadCollection(){ const saved=JSON.parse(localStorage.getItem("collecti
 /* ------------------------- 핵심 기능 ------------------------- */
 function updateWeapon(){ const name=getWeaponName(); document.getElementById("weaponName").innerText=name; document.getElementById("weaponLevel").innerText="+"+level; document.getElementById("rate").innerText=`성공 확률: ${getSuccessRate()}%`; document.getElementById("weaponIcon").innerText=getWeaponIcon(); addToCollection(name); }
 
-function upgrade(){ if(gold<upgradeCost){ log("골드 부족!"); return; } gold-=upgradeCost; updateGold(); const rate=getSuccessRate(); const rand=Math.random()*100; const box=document.querySelector('.box'); if(rand<=rate){ level++; log("강화 성공! +1"); showRandomGreeting(); box.style.transform="scale(1.05)"; box.style.background="#2a2a2a"; setTimeout(()=>{ box.style.transform="scale(1)"; box.style.background="#1a1a1a"; },100); }if(level >= 55){
-    box.classList.add("awakening");
-    log("💀 종말의 힘이 깨어난다...");
-    setTimeout(()=>{ box.classList.remove("awakening"); }, 600);
+function upgrade(){
+    if(gold < upgradeCost){
+        log("골드 부족!");
+        return;
+    }
+
+    gold -= upgradeCost;
+    updateGold();
+
+    const rate = getSuccessRate();
+    const rand = Math.random() * 100;
+    const box = document.querySelector('.box');
+
+    if(rand <= rate){
+        level++;
+        log("강화 성공! +1");
+        showRandomGreeting();
+
+        box.style.transform = "scale(1.05)";
+        box.style.background = "#2a2a2a";
+        setTimeout(()=>{
+            box.style.transform = "scale(1)";
+            box.style.background = "#1a1a1a";
+        },100);
+
+        if(level >= 55){
+            box.classList.add("awakening");
+            log("💀 종말의 힘이 깨어난다...");
+            setTimeout(()=>{ box.classList.remove("awakening"); }, 600);
+        }
+
+    } else {
+        if(Math.random() < 0.05){
+            log("💥 무기 파괴! 새 무기 지급");
+            resetWeapon();
+        } else {
+            log("강화 실패… 변화 없음");
+        }
+    }
+
+    updateWeapon();
 }
- else { if(Math.random()<0.05){ log("💥 무기 파괴! 새 무기 지급"); resetWeapon(); } else { log("강화 실패… 변화 없음"); } } updateWeapon(); }
+
 function resetWeapon(){ level=0; updateWeapon(); }
 function sellWeapon(){ if(level===0){ log("기본 무기 판매 불가"); return; } const price=level*30; gold+=price; updateGold(); log(`+${level} 무기를 ${price}G에 판매`); resetWeapon(); }
-function checkAttendance(){ const today=new Date().toDateString(); if(localStorage.getItem("attendance")===today){ log("오늘 출석 완료"); return; } gold+=100; updateGold(); localStorage.setItem("attendance",today); log("출석 보상 100G 지급"); }
+function checkAttendance(){
+    const today = getTodayKey();
+
+    if(localStorage.getItem("attendance") === today){
+        log("오늘 출석 완료");
+        return;
+    }
+
+    gold += 1000;
+    updateGold();
+    localStorage.setItem("attendance", today);
+    log("출석 보상 100G 지급");
+}
+
 function emergencyRescue(){ if(localStorage.getItem("emergencyUsed")==="true"){ log("이미 사용됨"); return; } gold+=500; updateGold(); localStorage.setItem("emergencyUsed","true"); log("🆘 긴급 지원 500G 지급"); checkEmergencyButton(); }
 function checkEmergencyButton(){ document.getElementById("rescueBtn").style.display=(localStorage.getItem("emergencyUsed")==="true")?"none":"block"; }
 function goBack(){ window.location.href="https://kwakkyungmok-del.github.io/my-web-game/"; }
@@ -187,6 +237,14 @@ document.getElementById("backBtn").addEventListener("click",goBack);
 
 /* ------------------------- 최초 실행 ------------------------- */
 showRandomGreeting(); updateWeapon(); updateGold(); checkEmergencyButton(); loadCollection();
+    function getTodayKey(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
 </script>
 </body>
 </html>

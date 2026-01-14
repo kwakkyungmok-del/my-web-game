@@ -1,1 +1,192 @@
-<!DOCTYPE html> <html lang="ko"> <head> <meta charset="UTF-8"> <title>무기 강화 시뮬레이터</title> <style> body { margin:0; padding:0; background:#111; color:#fff; font-family:Arial; display:flex; justify-content:center; align-items:center; height:100vh; } #backBtn { position:fixed; top:10px; left:10px; padding:8px 12px; background:#333; color:#fff; border:none; border-radius:6px; cursor:pointer; } .box { width:320px; background:#1a1a1a; padding:20px; border-radius:12px; text-align:center; transition: transform 0.1s, background 0.1s; } button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px; font-size:14px; cursor:pointer;} #upgradeBtn { background:#3b82f6; color:white; } #sellBtn { background:#f59e0b; color:black; } #attendanceBtn { background:#16a34a; color:white; } #rescueBtn { background:#dc2626; color:white; } <div class="box"> ... <button id="devBtn" style="display:none;">개발자 전용</button> </div> #gold { color:#facc15; margin:6px 0; font-weight:bold; } #rate { color:#60a5fa; margin:4px 0; font-size:13px; } #log { min-height:24px; margin:10px 0; color:#facc15; } #artisanMsg { margin-bottom:10px; color:#34d399; font-weight:bold; } .collection { max-height:120px; overflow-y:auto; background:#0f0f0f; padding:6px; border-radius:6px; font-size:12px; margin-top:10px; text-align:left; } .item { background:#222; margin-bottom:4px; padding:4px; border-radius:4px; } /* 기록 등록 모달 */ #recordModal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:none; justify-content:center; align-items:center; z-index:9999; } #recordModal .modalBox { background:#1a1a1a; padding:20px; border-radius:12px; width:280px; text-align:center; } #recordModal input { width:100%; padding:8px; margin:10px 0; border:none; border-radius:6px; } #recordModal .saveBtn { background:#f59e0b; color:black; } #recordModal .closeBtn { background:#333; color:white; } .awakening { animation: shake 0.2s infinite; box-shadow: 0 0 20px 5px red; background: linear-gradient(135deg, #3a0000, #000); } @keyframes shake { 0% { transform: translate(0, 0); } 25% { transform: translate(2px, -2px); } 50% { transform: translate(-2px, 2px); } 75% { transform: translate(2px, 2px); } 100% { transform: translate(0, 0); } } </style> <meta name="viewport" content="width=device-width, initial-scale=1.0"> </head> <body> <button id="backBtn">← 뒤로가기</button> <div class="box"> <div id="artisanMsg">재민이 인사를 건넵니다…</div> <h2 id="weaponName">낡은 검</h2> <div id="weaponIcon" style="font-size:48px; margin:6px 0;">🗡️</div> <div id="weaponLevel">+0</div> <div id="rate">성공 확률: 100%</div> <div id="gold">💰 0 G</div> <button id="upgradeBtn">강화하기 (20G)</button> <button id="sellBtn">무기 판매</button> <button id="attendanceBtn">출석 체크</button> <button id="rescueBtn">긴급 지원 받기</button> <button id="openRecordBtn" style="background:#6366f1; color:white;">검 기록 등록</button> <div id="log">강화를 시작하세요.</div> <div class="collection" id="collection"></div> </div> <div id="recordModal"> <div class="modalBox"> <h3>검 기록 등록</h3> <input type="text" id="recordName" placeholder="닉네임 입력"> <button class="saveBtn" id="saveRecordBtn">등록</button> <button class="closeBtn" id="closeRecordBtn">닫기</button> </div> </div> <!-- Supabase SDK --> <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> <script> /* ------------------------- Supabase 초기화 ------------------------- */ const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co"; const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9"; const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); /* ------------------------- 데이터 초기화 ------------------------- */ let level = 0; let gold = 0; const upgradeCost = 20; const stageNames = [ "낡은", // 0~4 "단단한", // 5~9 "강철", // 10~14 "불타는", // 15~19 "용의", // 20~24 "심연의", // 25~29 "천상의", // 30~34 "차원의", // 35~39 "신화의", // 40~44 "종말의" // 45+ ]; const extras = [ "날카로운","묵직한","빛나는","저주받은","신성한","광폭한", "파괴적인","냉혹한","절대적인","혼돈의","무한의","재앙의", "심판의","지배자의","망각의","초월한","봉인된","폭주의" ]; const artisanGreetings = [ "좋은 하루입니다! 검 강화 준비됐나요?", "강화를 즐기러 왔군요!", "오늘도 강철같이 단단해져 봅시다!", "무기 관리도 중요하죠, 조심하세요!", "힘내세요! 행운이 함께하길!", "강화는 마음가짐부터 시작입니다." ]; let collectionSet = new Set(JSON.parse(localStorage.getItem("collection") || "[]")); gold = parseInt(localStorage.getItem("gold") || "1000"); if(!localStorage.getItem("initGold")) { localStorage.setItem("initGold","true"); localStorage.setItem("gold",gold); } /* ------------------------- 유틸 함수 ------------------------- */ function showRandomGreeting(){ document.getElementById("artisanMsg").innerText = 재민: "${artisanGreetings[Math.floor(Math.random()*artisanGreetings.length)]}"; } function getWeaponName(){ const stageIndex = Math.floor(level / 5); const stage = stageNames[Math.min(stageIndex, stageNames.length - 1)]; const extra = extras[level % extras.length]; if (level === 0) return ${stage} 검; if (level < 5) return ${stage} 검; return ${stage} ${extra} 검; } function getWeaponIcon(){ if(level<5) return "🗡️"; if(level<10) return "⚔️"; if(level<15) return "🔥⚔️"; return "👑⚔️"; } function getSuccessRate(){ if(level===0) return 100; let rate = 100; for(let i=1;i<=level;i++){ if(i<=5) rate-=(6-i); else rate-=2; } return Math.max(rate,5); } function log(msg){ document.getElementById("log").innerText = msg; } function updateGold(){ document.getElementById("gold").innerText = 💰 ${gold} G; localStorage.setItem("gold",gold); } function addToCollection(name){ if(collectionSet.has(name)) return; collectionSet.add(name); localStorage.setItem("collection",JSON.stringify([...collectionSet])); const div = document.createElement("div"); div.className="item"; div.innerText=name; document.getElementById("collection").appendChild(div); } function loadCollection(){ const saved=JSON.parse(localStorage.getItem("collection")||"[]"); const box=document.getElementById("collection"); box.innerHTML=""; saved.forEach(n=>{ const div=document.createElement("div"); div.className="item"; div.innerText=n; box.appendChild(div); collectionSet.add(n); }); } /* ------------------------- 핵심 기능 ------------------------- */ function updateWeapon(){ const name=getWeaponName(); document.getElementById("weaponName").innerText=name; document.getElementById("weaponLevel").innerText="+"+level; document.getElementById("rate").innerText=성공 확률: ${getSuccessRate()}%; document.getElementById("weaponIcon").innerText=getWeaponIcon(); addToCollection(name); } function upgrade(){ if(gold<upgradeCost){ log("골드 부족!"); return; } gold-=upgradeCost; updateGold(); const rate=getSuccessRate(); const rand=Math.random()*100; const box=document.querySelector('.box'); if(rand<=rate){ level++; log("강화 성공! +1"); showRandomGreeting(); box.style.transform="scale(1.05)"; box.style.background="#2a2a2a"; setTimeout(()=>{ box.style.transform="scale(1)"; box.style.background="#1a1a1a"; },100); }if(level >= 55){ box.classList.add("awakening"); log("💀 종말의 힘이 깨어난다..."); setTimeout(()=>{ box.classList.remove("awakening"); }, 600); } else { if(Math.random()<0.05){ log("💥 무기 파괴! 새 무기 지급"); resetWeapon(); } else { log("강화 실패… 변화 없음"); } } updateWeapon(); } function resetWeapon(){ level=0; updateWeapon(); } function sellWeapon(){ if(level===0){ log("기본 무기 판매 불가"); return; } const price=level*30; gold+=price; updateGold(); log(+${level} 무기를 ${price}G에 판매); resetWeapon(); } function checkAttendance(){ const today=new Date().toDateString(); if(localStorage.getItem("attendance")===today){ log("오늘 출석 완료"); return; } gold+=100; updateGold(); localStorage.setItem("attendance",today); log("출석 보상 100G 지급"); } function emergencyRescue(){ if(localStorage.getItem("emergencyUsed")==="true"){ log("이미 사용됨"); return; } gold+=500; updateGold(); localStorage.setItem("emergencyUsed","true"); log("🆘 긴급 지원 500G 지급"); checkEmergencyButton(); } function checkEmergencyButton(){ document.getElementById("rescueBtn").style.display=(localStorage.getItem("emergencyUsed")==="true")?"none":"block"; } function goBack(){ window.location.href="https://kwakkyungmok-del.github.io/my-web-game/"; } /* ------------------------- 기록 등록 ------------------------- */ document.getElementById("openRecordBtn").onclick = ()=>{ document.getElementById("recordModal").style.display="flex"; }; document.getElementById("closeRecordBtn").onclick = ()=>{ document.getElementById("recordModal").style.display="none"; }; document.getElementById("saveRecordBtn").onclick = async ()=>{ const name = document.getElementById("recordName").value.trim(); if(!name){ alert("닉네임 입력"); return; } const { data, error } = await sb.from('swordRankings').insert([{ owner:name, weapon:getWeaponName(), level:level }]); if(error){ alert("등록 실패:"+error.message); return; } alert("등록 완료!"); document.getElementById("recordModal").style.display="none"; document.getElementById("recordName").value=""; }; /* ------------------------- 버튼 연결 ------------------------- */ document.getElementById("upgradeBtn").addEventListener("click",upgrade); document.getElementById("sellBtn").addEventListener("click",sellWeapon); document.getElementById("attendanceBtn").addEventListener("click",checkAttendance); document.getElementById("rescueBtn").addEventListener("click",emergencyRescue); document.getElementById("backBtn").addEventListener("click",goBack); /* ------------------------- 최초 실행 ------------------------- */ showRandomGreeting(); updateWeapon(); updateGold(); checkEmergencyButton(); loadCollection(); /* 기본: PC 기준 */ .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; } /* 모바일 대응 */ @media (max-width: 768px) { h1 { font-size: 22px; } .container { grid-template-columns: 1fr; padding: 10px; } .card { padding: 15px; } #boardBtn, #showRankingBtn { font-size: 14px; padding: 8px 10px; } } /* ================== 개발자 모드 토글 ================== */ if (!localStorage.getItem("isDeveloper")) { document.addEventListener("keydown", e => { if (e.ctrlKey && e.shiftKey && e.key === "D") { localStorage.setItem("isDeveloper", "true"); alert("개발자 모드 활성화"); location.reload(); } }); } /* 개발자 전용 버튼 보이기 */ if (localStorage.getItem("isDeveloper") === "true") { document.getElementById("devBtn").style.display = "block"; } </script> </body> </html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>무기 강화 시뮬레이터</title>
+<style>
+body { margin:0; padding:0; background:#111; color:#fff; font-family:Arial; display:flex; justify-content:center; align-items:center; height:100vh; }
+#backBtn { position:fixed; top:10px; left:10px; padding:8px 12px; background:#333; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+.box { width:320px; background:#1a1a1a; padding:20px; border-radius:12px; text-align:center; transition: transform 0.1s, background 0.1s; }
+button { width:100%; padding:10px; margin:6px 0; border:none; border-radius:8px; font-size:14px; cursor:pointer;}
+#upgradeBtn { background:#3b82f6; color:white; }
+#sellBtn { background:#f59e0b; color:black; }
+#attendanceBtn { background:#16a34a; color:white; }
+#rescueBtn { background:#dc2626; color:white; }
+    <div class="box">
+    ...
+    <button id="devBtn" style="display:none;">개발자 전용</button>
+</div>
+
+#gold { color:#facc15; margin:6px 0; font-weight:bold; }
+#rate { color:#60a5fa; margin:4px 0; font-size:13px; }
+#log { min-height:24px; margin:10px 0; color:#facc15; }
+#artisanMsg { margin-bottom:10px; color:#34d399; font-weight:bold; }
+.collection { max-height:120px; overflow-y:auto; background:#0f0f0f; padding:6px; border-radius:6px; font-size:12px; margin-top:10px; text-align:left; }
+.item { background:#222; margin-bottom:4px; padding:4px; border-radius:4px; }
+
+/* 기록 등록 모달 */
+#recordModal {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.7); display:none; justify-content:center; align-items:center; z-index:9999;
+}
+#recordModal .modalBox {
+    background:#1a1a1a; padding:20px; border-radius:12px; width:280px; text-align:center;
+}
+#recordModal input {
+    width:100%; padding:8px; margin:10px 0; border:none; border-radius:6px;
+}
+#recordModal .saveBtn { background:#f59e0b; color:black; }
+#recordModal .closeBtn { background:#333; color:white; }
+    .awakening {
+    animation: shake 0.2s infinite;
+    box-shadow: 0 0 20px 5px red;
+    background: linear-gradient(135deg, #3a0000, #000);
+}
+
+@keyframes shake {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(2px, -2px); }
+    50% { transform: translate(-2px, 2px); }
+    75% { transform: translate(2px, 2px); }
+    100% { transform: translate(0, 0); }
+}
+
+</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</head>
+<body>
+
+<button id="backBtn">← 뒤로가기</button>
+
+<div class="box">
+    <div id="artisanMsg">재민이 인사를 건넵니다…</div>
+    <h2 id="weaponName">낡은 검</h2>
+    <div id="weaponIcon" style="font-size:48px; margin:6px 0;">🗡️</div>
+    <div id="weaponLevel">+0</div>
+    <div id="rate">성공 확률: 100%</div>
+    <div id="gold">💰 0 G</div>
+
+    <button id="upgradeBtn">강화하기 (20G)</button>
+    <button id="sellBtn">무기 판매</button>
+    <button id="attendanceBtn">출석 체크</button>
+    <button id="rescueBtn">긴급 지원 받기</button>
+    <button id="openRecordBtn" style="background:#6366f1; color:white;">검 기록 등록</button>
+
+    <div id="log">강화를 시작하세요.</div>
+
+    <div class="collection" id="collection"></div>
+</div>
+
+<div id="recordModal">
+    <div class="modalBox">
+        <h3>검 기록 등록</h3>
+        <input type="text" id="recordName" placeholder="닉네임 입력">
+        <button class="saveBtn" id="saveRecordBtn">등록</button>
+        <button class="closeBtn" id="closeRecordBtn">닫기</button>
+    </div>
+</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+/* ------------------------- Supabase 초기화 ------------------------- */
+const SUPABASE_URL = "https://lpgcfyisclihwlvlxent.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ftA0tc3gS_v48aDVFFpF3g_velgD4y9";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ------------------------- 데이터 초기화 ------------------------- */
+let level = 0;
+let gold = 0;
+const upgradeCost = 20;
+const stageNames = [
+    "낡은",        // 0~4
+    "단단한",      // 5~9
+    "강철",        // 10~14
+    "불타는",      // 15~19
+    "용의",        // 20~24
+    "심연의",      // 25~29
+    "천상의",      // 30~34
+    "차원의",      // 35~39
+    "신화의",      // 40~44
+    "종말의"       // 45+
+];
+
+const extras = [
+    "날카로운","묵직한","빛나는","저주받은","신성한","광폭한",
+    "파괴적인","냉혹한","절대적인","혼돈의","무한의","재앙의",
+    "심판의","지배자의","망각의","초월한","봉인된","폭주의"
+];
+
+const artisanGreetings = [
+    "좋은 하루입니다! 검 강화 준비됐나요?",
+    "강화를 즐기러 왔군요!",
+    "오늘도 강철같이 단단해져 봅시다!",
+    "무기 관리도 중요하죠, 조심하세요!",
+    "힘내세요! 행운이 함께하길!",
+    "강화는 마음가짐부터 시작입니다."
+];
+
+let collectionSet = new Set(JSON.parse(localStorage.getItem("collection") || "[]"));
+gold = parseInt(localStorage.getItem("gold") || "1000");
+if(!localStorage.getItem("initGold")) { localStorage.setItem("initGold","true"); localStorage.setItem("gold",gold); }
+
+/* ------------------------- 유틸 함수 ------------------------- */
+function showRandomGreeting(){ document.getElementById("artisanMsg").innerText = `재민: "${artisanGreetings[Math.floor(Math.random()*artisanGreetings.length)]}"`; }
+function getWeaponName(){
+    const stageIndex = Math.floor(level / 5);
+    const stage = stageNames[Math.min(stageIndex, stageNames.length - 1)];
+    const extra = extras[level % extras.length];
+
+    if (level === 0) return `${stage} 검`;
+    if (level < 5) return `${stage} 검`;
+    return `${stage} ${extra} 검`;
+}
+
+function getWeaponIcon(){ if(level<5) return "🗡️"; if(level<10) return "⚔️"; if(level<15) return "🔥⚔️"; return "👑⚔️"; }
+function getSuccessRate(){ if(level===0) return 100; let rate = 100; for(let i=1;i<=level;i++){ if(i<=5) rate-=(6-i); else rate-=2; } return Math.max(rate,5); }
+function log(msg){ document.getElementById("log").innerText = msg; }
+function updateGold(){ document.getElementById("gold").innerText = `💰 ${gold} G`; localStorage.setItem("gold",gold); }
+function addToCollection(name){ if(collectionSet.has(name)) return; collectionSet.add(name); localStorage.setItem("collection",JSON.stringify([...collectionSet])); const div = document.createElement("div"); div.className="item"; div.innerText=name; document.getElementById("collection").appendChild(div); }
+function loadCollection(){ const saved=JSON.parse(localStorage.getItem("collection")||"[]"); const box=document.getElementById("collection"); box.innerHTML=""; saved.forEach(n=>{ const div=document.createElement("div"); div.className="item"; div.innerText=n; box.appendChild(div); collectionSet.add(n); }); }
+
+/* ------------------------- 핵심 기능 ------------------------- */
+function updateWeapon(){ const name=getWeaponName(); document.getElementById("weaponName").innerText=name; document.getElementById("weaponLevel").innerText="+"+level; document.getElementById("rate").innerText=`성공 확률: ${getSuccessRate()}%`; document.getElementById("weaponIcon").innerText=getWeaponIcon(); addToCollection(name); }
+
+function upgrade(){ if(gold<upgradeCost){ log("골드 부족!"); return; } gold-=upgradeCost; updateGold(); const rate=getSuccessRate(); const rand=Math.random()*100; const box=document.querySelector('.box'); if(rand<=rate){ level++; log("강화 성공! +1"); showRandomGreeting(); box.style.transform="scale(1.05)"; box.style.background="#2a2a2a"; setTimeout(()=>{ box.style.transform="scale(1)"; box.style.background="#1a1a1a"; },100); }if(level >= 55){
+    box.classList.add("awakening");
+    log("💀 종말의 힘이 깨어난다...");
+    setTimeout(()=>{ box.classList.remove("awakening"); }, 600);
+}
+ else { if(Math.random()<0.05){ log("💥 무기 파괴! 새 무기 지급"); resetWeapon(); } else { log("강화 실패… 변화 없음"); } } updateWeapon(); }
+function resetWeapon(){ level=0; updateWeapon(); }
+function sellWeapon(){ if(level===0){ log("기본 무기 판매 불가"); return; } const price=level*30; gold+=price; updateGold(); log(`+${level} 무기를 ${price}G에 판매`); resetWeapon(); }
+function checkAttendance(){ const today=new Date().toDateString(); if(localStorage.getItem("attendance")===today){ log("오늘 출석 완료"); return; } gold+=100; updateGold(); localStorage.setItem("attendance",today); log("출석 보상 100G 지급"); }
+function emergencyRescue(){ if(localStorage.getItem("emergencyUsed")==="true"){ log("이미 사용됨"); return; } gold+=500; updateGold(); localStorage.setItem("emergencyUsed","true"); log("🆘 긴급 지원 500G 지급"); checkEmergencyButton(); }
+function checkEmergencyButton(){ document.getElementById("rescueBtn").style.display=(localStorage.getItem("emergencyUsed")==="true")?"none":"block"; }
+function goBack(){ window.location.href="https://kwakkyungmok-del.github.io/my-web-game/"; }
+
+/* ------------------------- 기록 등록 ------------------------- */
+document.getElementById("openRecordBtn").onclick = ()=>{ document.getElementById("recordModal").style.display="flex"; };
+document.getElementById("closeRecordBtn").onclick = ()=>{ document.getElementById("recordModal").style.display="none"; };
+document.getElementById("saveRecordBtn").onclick = async ()=>{
+    const name = document.getElementById("recordName").value.trim();
+    if(!name){ alert("닉네임 입력"); return; }
+    const { data, error } = await sb.from('swordRankings').insert([{ owner:name, weapon:getWeaponName(), level:level }]);
+    if(error){ alert("등록 실패:"+error.message); return; }
+    alert("등록 완료!"); document.getElementById("recordModal").style.display="none"; document.getElementById("recordName").value="";
+};
+
+/* ------------------------- 버튼 연결 ------------------------- */
+document.getElementById("upgradeBtn").addEventListener("click",upgrade);
+document.getElementById("sellBtn").addEventListener("click",sellWeapon);
+document.getElementById("attendanceBtn").addEventListener("click",checkAttendance);
+document.getElementById("rescueBtn").addEventListener("click",emergencyRescue);
+document.getElementById("backBtn").addEventListener("click",goBack);
+
+/* ------------------------- 최초 실행 ------------------------- */
+showRandomGreeting(); updateWeapon(); updateGold(); checkEmergencyButton(); loadCollection();
+</script>
+</body>
+</html>

@@ -147,6 +147,23 @@ document.getElementById('fightBtn').onclick = async ()=>{
   }else{
     await sb.from('leaderboard').insert([{character_id:winner,wins:1,name:winnerChar.name}]);
   }
+// 쿨타임 체크 (30초)
+const now = new Date();
+const cooldownSec = 30; // 30초
+const p1Last = p1.last_fight ? new Date(p1.last_fight) : new Date(0);
+const p2Last = p2.last_fight ? new Date(p2.last_fight) : new Date(0);
+
+if((now - p1Last)/1000 < cooldownSec){ 
+  alert(`${p1.name}은(는) 아직 전투 쿨타임입니다. ${Math.ceil(cooldownSec - (now - p1Last)/1000)}초 남음`);
+  return;
+}
+if((now - p2Last)/1000 < cooldownSec){ 
+  alert(`${p2.name}은(는) 아직 전투 쿨타임입니다. ${Math.ceil(cooldownSec - (now - p2Last)/1000)}초 남음`);
+  return;
+}
+
+// 전투 후 업데이트
+await sb.from('characters').update({last_fight:now.toISOString()}).in('id',[p1.id,p2.id]);
 
   refreshLeaderboard();
 };

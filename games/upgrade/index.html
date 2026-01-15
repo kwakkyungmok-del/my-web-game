@@ -336,7 +336,7 @@ document.getElementById("upgrade10Btn").onclick = ()=>{
         if(rand <= rate){
             level++;
         } else {
-            if(!protectWeapon && Math.random() < 0.05){ // 파괴 방지 적용
+            if(!protectWeapon && Math.random() < 0.1){ // 파괴 방지 적용
                 log("💥 무기 파괴! 새 무기 지급");
                 resetWeapon();
                 break;
@@ -380,7 +380,7 @@ function upgrade(){
         }
 
     } else {
-        if(!protectWeapon && Math.random() < 0.05){
+        if(!protectWeapon && Math.random() < 0.01){
             log("💥 무기 파괴! 새 무기 지급");
             resetWeapon();
         } else {
@@ -460,7 +460,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if(rand <= rate){
                     level++;
                 } else {
-                    if(!protectWeapon && Math.random() < 0.05){
+                    if(!protectWeapon && Math.random() < 0.1){
                         log("💥 무기 파괴! 새 무기 지급");
                         resetWeapon();
                         break;

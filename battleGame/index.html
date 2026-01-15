@@ -176,6 +176,21 @@ document.getElementById('fightBtn').onclick = async () => {
     // 리더보드 새로고침
     refreshLeaderboard();
 };
+function refreshLeaderboard(){
+  sb.from('leaderboard')
+    .select('name,wins')
+    .order('wins', { ascending: false })
+    .then(({data, error})=>{
+      if(error){
+        console.error(error);
+        return;
+      }
+      leaderboardList.innerHTML = '';
+      data.forEach(d=>{
+        leaderboardList.innerHTML += `${d.name} - 승리수: ${d.wins}<br>`;
+      });
+    });
+}
 
 </script>
 

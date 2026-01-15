@@ -113,75 +113,70 @@ document.getElementById('createCharBtn').onclick = async ()=>{
   alert('캐릭터 생성 완료!');
 };
 
-document.getElementById('fightBtn').onclick = async ()=>{
-  const player1Id = charList.value;
-  const player2Id = opponentList.value;
-  if(!player1Id || !player2Id){ alert('플레이어 선택 필요'); return; }
-  if(player1Id===player2Id){ alert('상대를 다르게 선택하세요'); return; }
+document.getElementById('fightBtn').onclick = async () => {
+    const player1Id = charList.value;
+    if(!player1Id){ 
+        alert('플레이어 선택 필요'); 
+        return; 
+    }
 
-  const { data:charsData } = await sb.from('characters').select('*').in('id',[player1Id,player2Id]);
-  if(!charsData || charsData.length<2){ alert('캐릭터 정보 로딩 실패'); return; }
+    // 모든 캐릭터 불러오기
+    const { data: charsData, error } = await sb.from('characters').select('*');
+    if(error || !charsData || charsData.length < 2){ 
+        alert('캐릭터 정보 불러오기 실패 또는 충분하지 않음'); 
+        return; 
+    }
 
-  const [p1,p2] = charsData;
-  const atk1 = p1.base_atk; 
-  const def1 = p1.base_def; 
-  const atk2 = p2.base_atk; 
-  const def2 = p2.base_def;
+    // 플레이어1
+    const p1 = charsData.find(c => c.id === player1Id);
 
-  const score1 = atk1 - def2;
-  const score2 = atk2 - def1;
-  const winner = score1>=score2 ? p1.id : p2.id;
+    // 플레이어2 랜덤 선택 (플레이어1 제외)
+    const opponents = charsData.filter(c => c.id !== player1Id);
+    const p2 = opponents[Math.floor(Math.random() * opponents.length)];
 
-  const battleMsg = `${p1.name} vs ${p2.name} → 승리: ${winner===p1.id?p1.name:p2.name}`;
-  battleText.innerHTML = battleMsg;
-  battleModal.style.display='flex';
+    // 전투 쿨타임 체크 (30초)
+    const now = new Date();
+    const cooldownSec = 30;
+    const p1Last = p1.last_fight ? new Date(p1.last_fight) : new Date(0);
+    const p2Last = p2.last_fight ? new Date(p2.last_fight) : new Date(0);
 
-  // battles 기록
-  await sb.from('battles').insert([{player1_id:p1.id,player2_id:p2.id,winner_id:winner}]);
+    if((now - p1Last)/1000 < cooldownSec){ 
+        alert(`${p1.name}은(는) 아직 전투 쿨타임입니다. ${Math.ceil(cooldownSec - (now - p1Last)/1000)}초 남음`);
+        return;
+    }
+    if((now - p2Last)/1000 < cooldownSec){ 
+        alert(`${p2.name}은(는) 아직 전투 쿨타임입니다. ${Math.ceil(cooldownSec - (now - p2Last)/1000)}초 남음`);
+        return;
+    }
 
-  // leaderboard 업데이트 (이름 포함)
-  const winnerChar = [p1,p2].find(c=>c.id===winner);
-  const { data:lbData } = await sb.from('leaderboard').select('id,wins').eq('character_id',winner);
-  if(lbData && lbData.length>0){
-    await sb.from('leaderboard').update({wins:lbData[0].wins+1,name:winnerChar.name}).eq('id',lbData[0].id);
-  }else{
-    await sb.from('leaderboard').insert([{character_id:winner,wins:1,name:winnerChar.name}]);
-  }
-// 쿨타임 체크 (30초)
-const now = new Date();
-const cooldownSec = 30; // 30초
-const p1Last = p1.last_fight ? new Date(p1.last_fight) : new Date(0);
-const p2Last = p2.last_fight ? new Date(p2.last_fight) : new Date(0);
+    // 전투 계산
+    const score1 = p1.base_atk - p2.base_def;
+    const score2 = p2.base_atk - p1.base_def;
+    const winnerId = score1 >= score2 ? p1.id : p2.id;
+    const winnerChar = [p1, p2].find(c => c.id === winnerId);
 
-if((now - p1Last)/1000 < cooldownSec){ 
-  alert(`${p1.name}은(는) 아직 전투 쿨타임입니다. ${Math.ceil(cooldownSec - (now - p1Last)/1000)}초 남음`);
-  return;
-}
-if((now - p2Last)/1000 < cooldownSec){ 
-  alert(`${p2.name}은(는) 아직 전투 쿨타임입니다. ${Math.ceil(cooldownSec - (now - p2Last)/1000)}초 남음`);
-  return;
-}
+    // 전투 결과 표시
+    battleText.innerHTML = `${p1.name} vs ${p2.name} → 승리: ${winnerChar.name}`;
+    battleModal.style.display = 'flex';
 
-// 전투 후 업데이트
-await sb.from('characters').update({last_fight:now.toISOString()}).in('id',[p1.id,p2.id]);
+    // battles 기록
+    await sb.from('battles').insert([{player1_id: p1.id, player2_id: p2.id, winner_id: winnerId}]);
 
-  refreshLeaderboard();
+    // 캐릭터 last_fight 업데이트
+    await sb.from('characters').update({last_fight: now.toISOString()}).in('id', [p1.id, p2.id]);
+
+    // leaderboard 업데이트 (이름 포함)
+    const { data: lbData } = await sb.from('leaderboard').select('id,wins').eq('character_id', winnerId);
+    if(lbData && lbData.length > 0){
+        await sb.from('leaderboard').update({wins: lbData[0].wins + 1, name: winnerChar.name}).eq('id', lbData[0].id);
+    } else {
+        await sb.from('leaderboard').insert([{character_id: winnerId, wins: 1, name: winnerChar.name}]);
+    }
+
+    // 리더보드 새로고침
+    refreshLeaderboard();
 };
 
-function refreshLeaderboard(){
-  sb.from('leaderboard').select('name,wins').order('wins',{ascending:false})
-    .then(({data,error})=>{
-      if(error){ leaderboardList.innerHTML='불러오기 실패:'+error.message; return; }
-      leaderboardList.innerHTML='';
-      data.forEach(d=>leaderboardList.innerHTML += `${d.name} - 승리수: ${d.wins}<br>`);
-    });
-}
-
-document.getElementById('refreshLB').onclick = refreshLeaderboard;
-document.getElementById('closeBattle').onclick = ()=>{ battleModal.style.display='none'; };
-document.getElementById('backBtn').onclick = ()=>{ window.location.href='https://kwakkyungmok-del.github.io/my-web-game/'; };
-
-refreshLeaderboard();
 </script>
 
 </body>
